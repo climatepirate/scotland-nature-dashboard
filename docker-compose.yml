@@ -1,0 +1,31 @@
+services:
+  qgis-server:
+    image: qgis/qgis-server:ltr
+    platform: linux/amd64
+    container_name: scotland_nature_qgis_server
+    ports:
+      - "8080:80"
+    environment:
+      HOME: "/var/lib/qgis"
+      QGIS_SERVER_LOG_LEVEL: "0"
+      QGIS_SERVER_PARALLEL_RENDERING: "true"
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        cat >/usr/local/bin/pidof <<'EOF'
+        #!/bin/sh
+        if [ -n "$$1" ] && command -v /usr/bin/pgrep >/dev/null 2>&1; then
+          exec /usr/bin/pgrep -f "$$1"
+        fi
+        exit 1
+        EOF
+        chmod +x /usr/local/bin/pidof
+        cat >/etc/nginx/qgis.d/10-cors.conf <<'EOF'
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Origin,Content-Type,Accept" always;
+        EOF
+        exec /usr/local/bin/start-xvfb-nginx.sh
+    volumes:
+      - ./:/io/workspace:ro
