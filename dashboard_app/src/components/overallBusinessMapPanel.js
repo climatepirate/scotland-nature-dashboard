@@ -15,8 +15,8 @@ export function createOverallBusinessMapPanel() {
         <label class="map-selector-label" for="overall-business-layer-select">Business data layer</label>
         <select id="overall-business-layer-select" class="map-selector-input" aria-label="Business data layer">
           <option value="Company Concentration" selected>Company Concentration</option>
-          <option value="Total Dependency">Total Dependency</option>
-          <option value="Total Pressure">Total Pressure</option>
+          <option value="Average Dependency per Business">Average Dependency per Business</option>
+          <option value="Average Pressure per Business">Average Pressure per Business</option>
         </select>
       </div>
       <div class="map-selector-shell">

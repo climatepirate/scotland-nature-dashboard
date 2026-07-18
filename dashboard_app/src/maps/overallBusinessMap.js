@@ -23,46 +23,46 @@ const overallBusinessLegendByLayer = {
       { label: "1975.75 - 33068.00", color: "32,74,135,190" },
     ],
   },
-  "Total Dependency": {
-    title: "Total Dependency Score",
+  "Average Dependency per Business": {
+    title: "Average Dependency per Business",
     stops: [
-      { label: "0.36 - 27.26", color: "237,247,241,190" },
-      { label: "27.26 - 34.30", color: "184,216,207,190" },
-      { label: "34.30 - 37.18", color: "159,201,191,190" },
-      { label: "37.18 - 39.57", color: "139,190,179,190" },
-      { label: "39.57 - 42.01", color: "122,180,168,190" },
-      { label: "42.01 - 45.42", color: "107,172,159,190" },
-      { label: "45.42 - 47.86", color: "94,164,150,190" },
-      { label: "47.86 - 53.00", color: "81,156,142,190" },
-      { label: "53.00 - 61.65", color: "69,149,135,190" },
-      { label: "61.65 - 71.30", color: "58,143,128,190" },
-      { label: "71.30 - 84.83", color: "47,137,121,190" },
-      { label: "84.83 - 96.00", color: "37,131,115,190" },
-      { label: "96.00 - 110.19", color: "27,125,108,190" },
-      { label: "110.19 - 131.90", color: "18,119,102,190" },
-      { label: "131.90 - 154.80", color: "9,114,97,190" },
-      { label: "154.80 - 256.00", color: "0,109,91,190" },
+      { label: "2.27 - 2.48", color: "237,247,241,190" },
+      { label: "2.48 - 2.75", color: "184,216,207,190" },
+      { label: "2.75 - 2.85", color: "159,201,191,190" },
+      { label: "2.85 - 2.99", color: "139,190,179,190" },
+      { label: "2.99 - 3.16", color: "122,180,168,190" },
+      { label: "3.16 - 3.27", color: "107,172,159,190" },
+      { label: "3.27 - 3.36", color: "94,164,150,190" },
+      { label: "3.36 - 3.44", color: "81,156,142,190" },
+      { label: "3.44 - 3.52", color: "69,149,135,190" },
+      { label: "3.52 - 3.60", color: "58,143,128,190" },
+      { label: "3.60 - 3.70", color: "47,137,121,190" },
+      { label: "3.70 - 3.82", color: "37,131,115,190" },
+      { label: "3.82 - 3.92", color: "27,125,108,190" },
+      { label: "3.92 - 4.15", color: "18,119,102,190" },
+      { label: "4.15 - 4.56", color: "9,114,97,190" },
+      { label: "4.56 - 5.54", color: "0,109,91,190" },
     ],
   },
-  "Total Pressure": {
-    title: "Total Pressure Score",
+  "Average Pressure per Business": {
+    title: "Average Pressure per Business",
     stops: [
-      { label: "0.19 - 12.73", color: "255,242,221,190" },
-      { label: "12.73 - 17.14", color: "235,199,182,190" },
-      { label: "17.14 - 19.15", color: "226,179,165,190" },
-      { label: "19.15 - 20.69", color: "219,163,150,190" },
-      { label: "20.69 - 22.36", color: "213,149,138,190" },
-      { label: "22.36 - 24.21", color: "207,137,128,190" },
-      { label: "24.21 - 25.59", color: "202,126,118,190" },
-      { label: "25.59 - 28.37", color: "198,116,109,190" },
-      { label: "28.37 - 33.38", color: "193,106,100,190" },
-      { label: "33.38 - 38.57", color: "189,97,92,190" },
-      { label: "38.57 - 44.00", color: "185,88,84,190" },
-      { label: "44.00 - 48.73", color: "182,80,77,190" },
-      { label: "48.73 - 57.69", color: "178,72,70,190" },
-      { label: "57.69 - 71.00", color: "175,65,63,190" },
-      { label: "71.00 - 83.90", color: "171,57,56,190" },
-      { label: "83.90 - 167.00", color: "168,50,50,190" },
+      { label: "2.57 - 3.19", color: "255,242,221,190" },
+      { label: "3.19 - 3.35", color: "235,199,182,190" },
+      { label: "3.35 - 3.49", color: "226,179,165,190" },
+      { label: "3.49 - 3.57", color: "219,163,150,190" },
+      { label: "3.57 - 3.71", color: "213,149,138,190" },
+      { label: "3.71 - 3.81", color: "207,137,128,190" },
+      { label: "3.81 - 3.97", color: "202,126,118,190" },
+      { label: "3.97 - 4.06", color: "198,116,109,190" },
+      { label: "4.06 - 4.20", color: "193,106,100,190" },
+      { label: "4.20 - 4.41", color: "189,97,92,190" },
+      { label: "4.41 - 4.60", color: "185,88,84,190" },
+      { label: "4.60 - 5.09", color: "182,80,77,190" },
+      { label: "5.09 - 5.52", color: "178,72,70,190" },
+      { label: "5.52 - 5.85", color: "175,65,63,190" },
+      { label: "5.85 - 6.38", color: "171,57,56,190" },
+      { label: "6.38 - 7.82", color: "168,50,50,190" },
     ],
   },
 };
@@ -83,6 +83,26 @@ function parseRangeLabel(label) {
   };
 }
 
+function findFirstRange(stops) {
+  for (const stop of stops) {
+    const range = parseRangeLabel(stop.label);
+    if (range) {
+      return range;
+    }
+  }
+  return null;
+}
+
+function findLastRange(stops) {
+  for (let index = stops.length - 1; index >= 0; index -= 1) {
+    const range = parseRangeLabel(stops[index].label);
+    if (range) {
+      return range;
+    }
+  }
+  return null;
+}
+
 function formatLegendNumber(value) {
   if (!Number.isFinite(value)) {
     return "";
@@ -94,6 +114,22 @@ function formatLegendNumber(value) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
   }
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function refreshWmsTiles(layer) {
+  if (!layer) {
+    return;
+  }
+
+  if (typeof layer.setParams === "function") {
+    layer.setParams({
+      _ts: Date.now(),
+    });
+  }
+
+  if (typeof layer.redraw === "function") {
+    layer.redraw();
+  }
 }
 
 export function initOverallBusinessMap() {
@@ -270,8 +306,8 @@ export function initOverallBusinessMap() {
 
   const thematicLayerByLabel = {
     "Company Concentration": companyConcentrationLayer,
-    "Total Dependency": totalDependencyLayer,
-    "Total Pressure": totalPressureLayer,
+    "Average Dependency per Business": totalDependencyLayer,
+    "Average Pressure per Business": totalPressureLayer,
   };
 
   const contextLayerByLabel = {
@@ -304,8 +340,8 @@ export function initOverallBusinessMap() {
   }, [
     { label: "Hex ID", keys: ["hex_id", "hexid", "hex_id_1", "HEX_ID", "id"] },
     { label: "Company count", keys: ["company_count", "count", "company_cou", "COMPANY_COUNT"] },
-    { label: "Average total dependency per business", keys: ["mean_dep_score", "mean_dependency_score", "dependency_mean", "mean_dep", "MEAN_DEPENDENCY_SCORE"] },
-    { label: "Average total pressure per business", keys: ["mean_press_score", "mean_pressure_score", "pressure_mean", "mean_pres", "MEAN_PRESSURE_SCORE"] },
+    { label: "Average dependency per business", keys: ["mean_dep_score", "mean_dependency_score", "dependency_mean", "mean_dep", "MEAN_DEPENDENCY_SCORE"] },
+    { label: "Average pressure per business", keys: ["mean_press_score", "mean_pressure_score", "pressure_mean", "mean_pres", "MEAN_PRESSURE_SCORE"] },
   ]);
 
   const setActiveThematicLayer = (layerLabel) => {
@@ -321,6 +357,8 @@ export function initOverallBusinessMap() {
       map.addLayer(nextLayer);
     }
 
+    refreshWmsTiles(nextLayer);
+
     activeThematicLayer = nextLayer;
 
     const legendConfig = overallBusinessLegendByLayer[layerLabel] ?? overallBusinessLegendByLayer["Company Concentration"];
@@ -329,8 +367,8 @@ export function initOverallBusinessMap() {
       const pct = stops.length <= 1 ? 0 : (index / (stops.length - 1)) * 100;
       return `${rgba255ToCss(stop.color)} ${pct.toFixed(2)}%`;
     });
-    const firstRange = parseRangeLabel(stops[0].label);
-    const lastRange = parseRangeLabel(stops[stops.length - 1].label);
+    const firstRange = findFirstRange(stops);
+    const lastRange = findLastRange(stops);
     const rangeMin = firstRange?.min;
     const rangeMax = lastRange?.max;
     const rangeMid = Number.isFinite(rangeMin) && Number.isFinite(rangeMax)
@@ -383,7 +421,7 @@ export function initOverallBusinessMap() {
   });
 
   totalDependencyLayer.on("tileerror", (event) => {
-    console.error("[WMS tile error] Total dependency", {
+    console.error("[WMS tile error] Average dependency", {
       tileSrc: event?.tile?.src,
       coords: event?.coords,
       error: event?.error,
@@ -391,7 +429,7 @@ export function initOverallBusinessMap() {
   });
 
   totalPressureLayer.on("tileerror", (event) => {
-    console.error("[WMS tile error] Total pressure", {
+    console.error("[WMS tile error] Average pressure", {
       tileSrc: event?.tile?.src,
       coords: event?.coords,
       error: event?.error,
