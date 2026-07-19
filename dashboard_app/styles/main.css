@@ -311,6 +311,220 @@ body {
   line-height: 1.35;
 }
 
+.ecosystem-services-summary-section {
+  min-width: 0;
+}
+
+.ecosystem-services-summary-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.ecosystem-services-summary-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.ecosystem-services-summary-control-input {
+  min-width: 0;
+}
+
+.ecosystem-services-summary-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.ecosystem-services-summary-table-wrap {
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fcfefe 0%, #f8fbfa 100%);
+  overflow: auto;
+}
+
+.ecosystem-services-summary-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #ffffff;
+}
+
+.ecosystem-services-summary-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+  text-align: left;
+  background: #f5f8f7;
+}
+
+.ecosystem-services-summary-sort-button {
+  width: 100%;
+  border: 0;
+  padding: 12px 10px;
+  color: #31504c;
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ecosystem-services-summary-sort-button:hover {
+  background: #edf4f2;
+}
+
+.ecosystem-services-summary-table tbody th,
+.ecosystem-services-summary-table tbody td {
+  border-bottom: 1px solid #e6eeeb;
+  padding: 11px 10px;
+  vertical-align: top;
+}
+
+.ecosystem-services-summary-row-label {
+  text-align: left;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ecosystem-services-summary-row-title,
+.ecosystem-services-summary-row-subtitle {
+  display: block;
+}
+
+.ecosystem-services-summary-row-subtitle {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ecosystem-services-summary-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ecosystem-services-summary-chip-cell {
+  min-width: 0;
+  max-height: 140px;
+  overflow: auto;
+}
+
+.ecosystem-services-summary-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ecosystem-services-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(18, 102, 93, 0.18);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #1f2b2a;
+  background: #edf6f4;
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.ecosystem-services-summary-chip-label {
+  display: inline-block;
+}
+
+.ecosystem-services-summary-chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  color: #0f5b53;
+  background: rgba(18, 102, 93, 0.12);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ecosystem-services-summary-empty {
+  color: var(--muted);
+}
+
+.ecosystem-services-summary-empty-row {
+  padding: 20px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.ecosystem-services-summary-pagination {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ecosystem-services-summary-pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ecosystem-services-summary-pagination-text {
+  color: var(--muted);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.ecosystem-services-summary-pagination-button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  color: var(--text);
+  background: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ecosystem-services-summary-pagination-button:hover:not(:disabled) {
+  border-color: #b7cbc6;
+  background: #f1f6f4;
+}
+
+.ecosystem-services-summary-pagination-button:disabled {
+  color: #98a7a4;
+  cursor: not-allowed;
+  background: #f5f8f7;
+}
+
+.ecosystem-services-summary-empty-state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 20px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .ecosystem-services-summary-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .ecosystem-services-summary-pagination {
+    justify-content: flex-start;
+  }
+
+  .ecosystem-services-summary-pagination-bar {
+    flex-wrap: wrap;
+  }
+}
+
 .ecosystem-services-sankey-chart {
   width: 100%;
   overflow-x: auto;

@@ -9,6 +9,7 @@ import { initEcosystemServicesSankeyChart } from "./charts/ecosystemServicesSank
 import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServicesCoarseScatterChart.js";
 import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js";
 import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js";
+import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js";
 
 const appRoot = document.getElementById("app");
 const dashboardShell = renderDashboardShell();
@@ -29,3 +30,4 @@ initEcosystemServicesSankeyChart();
 initEcosystemServicesCoarseScatterChart();
 initEcosystemServicesIsicScatterChart();
 initEcosystemServicesCompanyScatterChart();
+initEcosystemServicesSummaryRankingTable();

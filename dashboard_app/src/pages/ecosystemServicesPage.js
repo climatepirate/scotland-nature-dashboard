@@ -1,3 +1,5 @@
+import { createEcosystemServicesSummaryRankingTableSection } from "../tables/ecosystemServicesSummaryRankingTable.js";
+
 function createFilterField(labelText, id, placeholderText) {
   const item = document.createElement("div");
   item.className = "global-filter-item";
@@ -129,7 +131,7 @@ function createCompanyScatterSection() {
 
   const heading = document.createElement("h3");
   heading.className = "panel-title";
-  heading.textContent = "Company-Level Dependency vs Pressure";
+  heading.textContent = "High Dependency vs High Pressure, Company-Level Scatter";
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
@@ -206,7 +208,7 @@ export function createEcosystemServicesPage() {
   titleCard.className = "panel ecosystem-services-title-card";
   titleCard.innerHTML = `
     <div class="panel-head">
-      <h2 class="panel-title">Ecosystem Services</h2>
+      <h2 class="panel-title">Sector Analysis</h2>
       <p class="panel-subtitle">Page structure scaffold for upcoming visualisations.</p>
     </div>
   `;
@@ -245,11 +247,7 @@ export function createEcosystemServicesPage() {
 
   const companyScatterSection = createCompanyScatterSection();
 
-  const summaryTableSection = createSectionCard(
-    "Summary Table",
-    "Full-width container for ecosystem services summary tabulation.",
-    "ecosystem-services-slot ecosystem-services-slot--summary",
-  );
+  const summaryTableSection = createEcosystemServicesSummaryRankingTableSection();
 
   page.append(
     titleCard,
