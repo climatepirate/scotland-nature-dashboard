@@ -1,6 +1,28 @@
 import { qgisServerConfig, qgisWmsLayers } from "../config/qgisServer.js";
 import { dependencyLegendByLayerName } from "../config/dependencyLegendData.js";
 import { bindGlobalFiltersToWmsLayers } from "../filters/globalMapFilter.js";
+import { createScotlandHexOutlineLayer } from "./sharedHexOutlineLayer.js";
+import { updateState } from "../state/state.js";
+import { initDependencyRidgelineChart } from "../charts/dependencyRidgelineChart.js";
+
+const allDependencyLegendStops = [
+  { label: "2.27 - 2.48", color: "237,247,241,190" },
+  { label: "2.48 - 2.75", color: "184,216,207,190" },
+  { label: "2.75 - 2.85", color: "159,201,191,190" },
+  { label: "2.85 - 2.99", color: "139,190,179,190" },
+  { label: "2.99 - 3.16", color: "122,180,168,190" },
+  { label: "3.16 - 3.27", color: "107,172,159,190" },
+  { label: "3.27 - 3.36", color: "94,164,150,190" },
+  { label: "3.36 - 3.44", color: "81,156,142,190" },
+  { label: "3.44 - 3.52", color: "69,149,135,190" },
+  { label: "3.52 - 3.60", color: "58,143,128,190" },
+  { label: "3.60 - 3.70", color: "47,137,121,190" },
+  { label: "3.70 - 3.82", color: "37,131,115,190" },
+  { label: "3.82 - 3.92", color: "27,125,108,190" },
+  { label: "3.92 - 4.15", color: "18,119,102,190" },
+  { label: "4.15 - 4.56", color: "9,114,97,190" },
+  { label: "4.56 - 5.54", color: "0,109,91,190" },
+];
 
 function escapeHtml(value) {
   return value
@@ -137,6 +159,8 @@ function createDependencyLayerSelector(selectElement, dependencyLayers, initialL
 }
 
 export function initEcosystemDependencyMap() {
+  initDependencyRidgelineChart();
+
   const container = document.getElementById("ecosystem-dependency-map");
   const serviceSelector = document.getElementById("ecosystem-dependency-service-select");
   if (!container || typeof L === "undefined") {
@@ -172,6 +196,8 @@ export function initEcosystemDependencyMap() {
 
   map.createPane("depBasemapPane");
   map.getPane("depBasemapPane").style.zIndex = "200";
+  map.createPane("depHexOutlinePane");
+  map.getPane("depHexOutlinePane").style.zIndex = "300";
   map.createPane("depThematicPane");
   map.getPane("depThematicPane").style.zIndex = "400";
 
@@ -182,7 +208,22 @@ export function initEcosystemDependencyMap() {
     pane: "depBasemapPane",
   }).addTo(map);
 
+  createScotlandHexOutlineLayer("depHexOutlinePane").addTo(map);
+
   const dependencyLayers = {
+    "All ecosystem dependencies": L.tileLayer.wms(qgisServerConfig.baseUrl, {
+      uppercase: true,
+      service: "WMS",
+      request: "GetMap",
+      version: "1.3.0",
+      layers: qgisWmsLayers.totalDependency,
+      styles: "",
+      format: "image/png",
+      transparent: true,
+      MAP: qgisServerConfig.projectPath,
+      crs: L.CRS.EPSG3857,
+      pane: "depThematicPane",
+    }),
     "Air filtration": L.tileLayer.wms(qgisServerConfig.baseUrl, {
       uppercase: true,
       service: "WMS",
@@ -510,14 +551,17 @@ export function initEcosystemDependencyMap() {
     }),
   };
 
-  const initialLayer = dependencyLayers["Air filtration"];
+  const initialLayer = dependencyLayers["All ecosystem dependencies"];
   bindGlobalFiltersToWmsLayers(Object.values(dependencyLayers));
   initialLayer.addTo(map);
   let activeLayer = initialLayer;
-  let activeServiceLabel = "Air filtration";
+  let activeServiceLabel = "All ecosystem dependencies";
+  updateState({ selectedDependency: activeServiceLabel });
 
   const updateDependencyLegend = (serviceLabel, wmsLayerName) => {
-    const legendConfig = dependencyLegendByLayerName[wmsLayerName];
+    const legendConfig = serviceLabel === "All ecosystem dependencies"
+      ? allDependencyLegendStops
+      : dependencyLegendByLayerName[wmsLayerName];
     if (!legendConfig || !legendConfig.length) {
       return;
     }
@@ -545,6 +589,7 @@ export function initEcosystemDependencyMap() {
   updateDependencyLegend(activeServiceLabel, activeLayer.wmsParams.layers);
 
   const averageDependencyFieldByService = {
+    "All ecosystem dependencies": "mean_dep_score",
     "Air filtration": "avg_dep_air_filtration",
     "Biological control": "avg_dep_biological_control",
     "Biomass provisioning": "avg_dep_biomass_provisioning",
@@ -622,7 +667,7 @@ export function initEcosystemDependencyMap() {
   createDependencyLayerSelector(
     serviceSelector,
     dependencyLayers,
-    "Air filtration",
+    "All ecosystem dependencies",
     (selectedLabel) => {
       const nextLayer = dependencyLayers[selectedLabel];
       if (!nextLayer || nextLayer === activeLayer) {
@@ -634,6 +679,7 @@ export function initEcosystemDependencyMap() {
       nextLayer.addTo(map);
       activeLayer = nextLayer;
       activeServiceLabel = selectedLabel;
+      updateState({ selectedDependency: activeServiceLabel });
       updateDependencyLegend(activeServiceLabel, activeLayer.wmsParams.layers);
     },
   );

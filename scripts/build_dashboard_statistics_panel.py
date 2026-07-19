@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import csv
 import json
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
+
+from isic_utils import canonicalize_section, derive_coarse_category, normalize_text, normalized_sections
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,50 +21,6 @@ ALL_SCOTLAND = "All Scotland"
 ALL_CATEGORIES = "All Categories"
 DEPENDENCY_THRESHOLD = 3.0
 PRESSURE_THRESHOLD = 7.0
-
-NOTEBOOK_COARSE_CATEGORY_MAP = {
-    "Agriculture, forestry and fishing": "Primary & Resource Industries",
-    "Mining and quarrying": "Primary & Resource Industries",
-    "Manufacturing": "Primary & Resource Industries",
-    "Electricity, gas, steam and air conditioning supply": "Primary & Resource Industries",
-    "Water supply; sewerage, waste management and remediation activities": "Primary & Resource Industries",
-    "Construction": "Primary & Resource Industries",
-    "Wholesale and retail trade; repair of motor vehicles and motorcycles": "Consumer & Visitor Economy",
-    "Transportation and storage": "Consumer & Visitor Economy",
-    "Accommodation and food service activities": "Consumer & Visitor Economy",
-    "Information and communication": "Business & Property Services",
-    "Financial and insurance activities": "Business & Property Services",
-    "Real estate activities": "Business & Property Services",
-    "Professional, scientific and technical activities": "Business & Property Services",
-    "Administrative and support service activities": "Business & Property Services",
-    "Public administration and defence; compulsory social security": "Public & Community Services",
-    "Education": "Public & Community Services",
-    "Human health and social work activities": "Public & Community Services",
-    "Arts, entertainment and recreation": "Public & Community Services",
-    "Other service activities": "Public & Community Services",
-    "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use": "Public & Community Services",
-    "Activities of extraterritorial organizations and bodies": "Public & Community Services",
-}
-
-
-def normalize_section_name(value: str | None) -> str:
-    if value is None:
-        return ""
-
-    cleaned = str(value).strip()
-    if cleaned == "" or cleaned.lower() == "nan":
-        return ""
-
-    parts = [part.strip() for part in re.split(r"[;,|]+", cleaned) if part.strip() and part.strip().lower() != "nan"]
-    return parts[0] if parts else ""
-
-
-def build_section_map() -> dict[str, str]:
-    section_map: dict[str, str] = {}
-    for section_name, category in NOTEBOOK_COARSE_CATEGORY_MAP.items():
-        section_map[normalize_section_name(section_name)] = category
-    return section_map
-
 
 def read_postcode_lookup() -> dict[str, str]:
     lookup: dict[str, str] = {}
@@ -95,23 +52,21 @@ def read_top_service_lookup() -> dict[str, str]:
 
 
 def get_first_isic_section(row: dict[str, str]) -> str:
-    first_section = normalize_section_name(row.get("first_isic_section"))
+    first_section = canonicalize_section(row.get("first_isic_section"))
     if first_section:
         return first_section
 
-    return normalize_section_name(row.get("isic_sections"))
+    sections = normalized_sections(row.get("isic_sections"))
+    return sections[0] if sections else ""
 
 
-def get_coarse_category(row: dict[str, str], section_map: dict[str, str]) -> str:
+def get_coarse_category(row: dict[str, str]) -> str:
     first_isic_section = get_first_isic_section(row)
-    if not first_isic_section:
-        return "Unclassified"
-
-    return section_map.get(first_isic_section, "Unclassified")
+    all_sections = normalized_sections(row.get("isic_sections"))
+    return derive_coarse_category(first_isic_section, all_sections, True)
 
 
 def build_output() -> None:
-    section_map = build_section_map()
     postcode_lookup = read_postcode_lookup()
     top_service_lookup = read_top_service_lookup()
 
@@ -137,7 +92,7 @@ def build_output() -> None:
 
             unique_codes = (row.get("unique_codes") or "").strip()
             has_mapped_unique_code = unique_codes not in {"", "nan", "None"}
-            coarse_category = get_coarse_category(row, section_map) if has_mapped_unique_code else "Unclassified"
+            coarse_category = get_coarse_category(row) if has_mapped_unique_code else "Unclassified"
 
             if has_mapped_unique_code:
                 overall_counts["mapped_unique_code"] += 1

@@ -10,6 +10,8 @@ import tempfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from isic_utils import canonicalize_section, normalized_sections
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "Data"
@@ -159,13 +161,14 @@ def build_filtered_company_base(postcode_lookup: dict[str, tuple[str, str]], wor
                 local_authority_code TEXT,
                 coarse_category TEXT,
                 isic_section TEXT,
+                isic_sections_all TEXT,
                 dep_score REAL,
                 press_score REAL
             )
             """
         )
 
-        insert_rows: list[tuple[str, str, str, str, str, str, str, float, float]] = []
+        insert_rows: list[tuple[str, str, str, str, str, str, str, str, float, float]] = []
 
         with COMPANY_MASTER_CSV.open("r", newline="", encoding="utf-8-sig") as handle:
             reader = csv.DictReader(handle)
@@ -193,7 +196,11 @@ def build_filtered_company_base(postcode_lookup: dict[str, tuple[str, str]], wor
                 press_score = float(press_score_raw or 0)
 
                 hex_id, local_authority_code = postcode_match
-                isic_section = (row.get("first_isic_section") or "").strip()
+                isic_sections_list = normalized_sections(row.get("isic_sections"))
+                isic_section = canonicalize_section(row.get("first_isic_section"))
+                if not isic_section:
+                    isic_section = isic_sections_list[0] if isic_sections_list else ""
+                isic_sections_all = "; ".join(isic_sections_list)
                 coarse_category = (row.get("Coarse Category") or "Unclassified").strip() or "Unclassified"
 
                 insert_rows.append(
@@ -205,6 +212,7 @@ def build_filtered_company_base(postcode_lookup: dict[str, tuple[str, str]], wor
                         local_authority_code,
                         coarse_category,
                         isic_section,
+                        isic_sections_all,
                         dep_score,
                         press_score,
                     )
@@ -214,14 +222,14 @@ def build_filtered_company_base(postcode_lookup: dict[str, tuple[str, str]], wor
 
                 if len(insert_rows) >= 5000:
                     connection.executemany(
-                        "INSERT INTO company_base VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "INSERT INTO company_base VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         insert_rows,
                     )
                     insert_rows.clear()
 
         if insert_rows:
             connection.executemany(
-                "INSERT INTO company_base VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO company_base VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 insert_rows,
             )
 

@@ -1,6 +1,6 @@
 import { globalFilterData, loadGlobalFilterData } from "../config/globalFilterData.js";
+import { fetchDashboardDataJson } from "../config/dataAssetLoader.js";
 
-const DATA_URL = new URL("../../../Data/dashboard_statistics_panel.json", import.meta.url);
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 
@@ -39,13 +39,7 @@ function getEmptySnapshot(state) {
 
 export async function loadStatisticsIndex() {
   if (!statisticsIndexPromise) {
-    statisticsIndexPromise = fetch(DATA_URL).then((response) => {
-      if (!response.ok) {
-        throw new Error(`Unable to load dashboard statistics index: ${response.status}`);
-      }
-
-      return response.json();
-    });
+    statisticsIndexPromise = fetchDashboardDataJson("dashboard_statistics_panel.json", "dashboard statistics index");
   }
 
   return statisticsIndexPromise;

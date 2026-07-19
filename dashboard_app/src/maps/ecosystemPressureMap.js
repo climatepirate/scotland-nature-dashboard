@@ -1,6 +1,27 @@
 import { qgisServerConfig, qgisWmsLayers } from "../config/qgisServer.js";
 import { pressureLegendByLayerName } from "../config/pressureLegendData.js";
 import { bindGlobalFiltersToWmsLayers } from "../filters/globalMapFilter.js";
+import { createScotlandHexOutlineLayer } from "./sharedHexOutlineLayer.js";
+import { updateState } from "../state/state.js";
+
+const allPressureLegendStops = [
+  { label: "2.57 - 3.19", color: "255,242,221,190" },
+  { label: "3.19 - 3.35", color: "235,199,182,190" },
+  { label: "3.35 - 3.49", color: "226,179,165,190" },
+  { label: "3.49 - 3.57", color: "219,163,150,190" },
+  { label: "3.57 - 3.71", color: "213,149,138,190" },
+  { label: "3.71 - 3.81", color: "207,137,128,190" },
+  { label: "3.81 - 3.97", color: "202,126,118,190" },
+  { label: "3.97 - 4.06", color: "198,116,109,190" },
+  { label: "4.06 - 4.20", color: "193,106,100,190" },
+  { label: "4.20 - 4.41", color: "189,97,92,190" },
+  { label: "4.41 - 4.60", color: "185,88,84,190" },
+  { label: "4.60 - 5.09", color: "182,80,77,190" },
+  { label: "5.09 - 5.52", color: "178,72,70,190" },
+  { label: "5.52 - 5.85", color: "175,65,63,190" },
+  { label: "5.85 - 6.38", color: "171,57,56,190" },
+  { label: "6.38 - 7.82", color: "168,50,50,190" },
+];
 
 function escapeHtml(value) {
   return value
@@ -172,6 +193,8 @@ export function initEcosystemPressureMap() {
 
   map.createPane("pressBasemapPane");
   map.getPane("pressBasemapPane").style.zIndex = "200";
+  map.createPane("pressHexOutlinePane");
+  map.getPane("pressHexOutlinePane").style.zIndex = "300";
   map.createPane("pressThematicPane");
   map.getPane("pressThematicPane").style.zIndex = "400";
 
@@ -182,7 +205,22 @@ export function initEcosystemPressureMap() {
     pane: "pressBasemapPane",
   }).addTo(map);
 
+  createScotlandHexOutlineLayer("pressHexOutlinePane").addTo(map);
+
   const pressureLayers = {
+    "All ecosystem pressures": L.tileLayer.wms(qgisServerConfig.baseUrl, {
+      uppercase: true,
+      service: "WMS",
+      request: "GetMap",
+      version: "1.3.0",
+      layers: qgisWmsLayers.totalPressure,
+      styles: "",
+      format: "image/png",
+      transparent: true,
+      MAP: qgisServerConfig.projectPath,
+      crs: L.CRS.EPSG3857,
+      pane: "pressThematicPane",
+    }),
     "Freshwater area use": L.tileLayer.wms(qgisServerConfig.baseUrl, {
       uppercase: true,
       service: "WMS",
@@ -354,14 +392,17 @@ export function initEcosystemPressureMap() {
     }),
   };
 
-  const initialLayer = pressureLayers["Freshwater area use"];
+  const initialLayer = pressureLayers["All ecosystem pressures"];
   bindGlobalFiltersToWmsLayers(Object.values(pressureLayers));
   initialLayer.addTo(map);
   let activeLayer = initialLayer;
-  let activePressureLabel = "Freshwater area use";
+  let activePressureLabel = "All ecosystem pressures";
+  updateState({ selectedPressure: activePressureLabel });
 
   const updatePressureLegend = (pressureLabel, wmsLayerName) => {
-    const legendConfig = pressureLegendByLayerName[wmsLayerName];
+    const legendConfig = pressureLabel === "All ecosystem pressures"
+      ? allPressureLegendStops
+      : pressureLegendByLayerName[wmsLayerName];
     if (!legendConfig || !legendConfig.length) {
       return;
     }
@@ -389,6 +430,7 @@ export function initEcosystemPressureMap() {
   updatePressureLegend(activePressureLabel, activeLayer.wmsParams.layers);
 
   const averagePressureFieldByService = {
+    "All ecosystem pressures": "mean_press_score",
     "Freshwater area use": "avg_press_area_of_freshwater_use",
     "Land use": "avg_press_area_of_land_use",
     "Seabed use": "avg_press_area_of_seabed_use",
@@ -454,7 +496,7 @@ export function initEcosystemPressureMap() {
   createPressureLayerSelector(
     pressureSelector,
     pressureLayers,
-    "Freshwater area use",
+    "All ecosystem pressures",
     (selectedLabel) => {
       const nextLayer = pressureLayers[selectedLabel];
       if (!nextLayer || nextLayer === activeLayer) {
@@ -466,6 +508,7 @@ export function initEcosystemPressureMap() {
       nextLayer.addTo(map);
       activeLayer = nextLayer;
       activePressureLabel = selectedLabel;
+      updateState({ selectedPressure: activePressureLabel });
       updatePressureLegend(activePressureLabel, activeLayer.wmsParams.layers);
     },
   );

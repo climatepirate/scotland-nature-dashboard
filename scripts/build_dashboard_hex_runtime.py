@@ -41,6 +41,14 @@ RATING_MAP = {
     "VH": 6.0,
 }
 
+PRESSURE_RATING_MAP = {
+    "VL": 4.0,
+    "L": 5.0,
+    "M": 7.0,
+    "H": 9.0,
+    "VH": 11.0,
+}
+
 PRESSURE_FIELD_ALIASES = {
     "avg_press_emissions_of_ghg": "Emissions of GHG",
     "avg_press_disturbances_e_g_noise_light": "Disturbances (e.g noise, light)",
@@ -109,7 +117,10 @@ def collect_renderer_contracts(root: ET.Element) -> dict[str, str]:
             continue
 
         datasource = child_text(layer, "datasource")
-        if "dashboard_hex_master_complete.gpkg|layername=dashboard_hex_master_complete__dashboard_hex_master" not in datasource:
+        if (
+            "dashboard_hex_runtime.gpkg|layername=dashboard_hex_runtime" not in datasource
+            and "dashboard_hex_master_complete.gpkg|layername=dashboard_hex_master_complete__dashboard_hex_master" not in datasource
+        ):
             continue
 
         layer_name = child_text(layer, "layername")
@@ -157,7 +168,7 @@ def normalize_pressure_facts(press_df: pd.DataFrame, valid_company_ids: set[str]
     working["metric_name"] = working[name_col].apply(normalize_label)
     working["score_numeric"] = pd.to_numeric(working["Pressure_score_numeric"], errors="coerce")
     working["rating_norm"] = working["Rating"].apply(normalize_rating)
-    working["rating_mapped_score"] = working["rating_norm"].map(RATING_MAP)
+    working["rating_mapped_score"] = working["rating_norm"].map(PRESSURE_RATING_MAP)
 
     working["value"] = working["score_numeric"]
     backfill_mask = working["value"].isna() & working["rating_mapped_score"].notna()
@@ -337,6 +348,8 @@ def main() -> int:
 
     qgs_root = parse_qgs_root(QGIS_PROJECT)
     renderer_contracts = collect_renderer_contracts(qgs_root)
+    if not renderer_contracts:
+        failures.append("no renderer contracts were found in the QGIS project; cannot build per-service runtime metrics")
 
     dashboard_master = pd.read_csv(
         DASHBOARD_MASTER_CSV,

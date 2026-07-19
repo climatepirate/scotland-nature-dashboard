@@ -2,6 +2,8 @@ import { createMapPanel, createChartPanel } from "../components/panelPlaceholder
 import { createOverallBusinessMapPanel } from "../components/overallBusinessMapPanel.js";
 import { createDependencyMapPanel } from "../components/dependencyMapPanel.js";
 import { createPressureMapPanel } from "../components/pressureMapPanel.js";
+import { createDependencyRidgelinePanel } from "../components/dependencyRidgelinePanel.js";
+import { createPressureRidgelinePanel } from "../components/pressureRidgelinePanel.js";
 import { createStatisticsPanel } from "../components/statisticsPanel.js";
 import { createGlobalFilterBar } from "../layout/filterBar.js";
 import { createHeader } from "../layout/header.js";
@@ -43,20 +45,14 @@ export function renderDashboardShell() {
   dependencyColumn.className = "column";
   dependencyColumn.append(
     createDependencyMapPanel(),
-    createChartPanel(
-      "Dependency by Coarse Business Category",
-      "Placeholder chart below dependency map",
-    ),
+    createDependencyRidgelinePanel(),
   );
 
   const pressureColumn = document.createElement("section");
   pressureColumn.className = "column";
   pressureColumn.append(
     createPressureMapPanel(),
-    createChartPanel(
-      "Pressure by Coarse Business Category",
-      "Placeholder chart below pressure map",
-    ),
+    createPressureRidgelinePanel(),
   );
 
   bottomSplit.append(

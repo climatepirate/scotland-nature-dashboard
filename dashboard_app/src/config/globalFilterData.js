@@ -1,4 +1,5 @@
-const FILTER_INDEX_URL = new URL("../../../Data/dashboard_filter_index.json", import.meta.url);
+import { fetchDashboardDataJson } from "./dataAssetLoader.js";
+
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 
@@ -71,14 +72,7 @@ let globalFilterDataPromise = null;
 
 export function loadGlobalFilterData() {
   if (!globalFilterDataPromise) {
-    globalFilterDataPromise = fetch(FILTER_INDEX_URL)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Unable to load dashboard filter index: ${response.status}`);
-        }
-
-        return response.json();
-      })
+    globalFilterDataPromise = fetchDashboardDataJson("dashboard_filter_index.json", "dashboard filter index")
       .then((payload) => {
         const localAuthorityCodes = (payload.local_authorities || [])
           .map(normalizeCodeEntry)

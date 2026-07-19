@@ -4,6 +4,7 @@ export const qgisServerConfig = {
 };
 
 export const qgisWmsLayers = {
+  scotlandHexGrid: "dashboard_hex_master_complete",
   companyConcentration: "Company concentration",
   totalDependency: "Average dependency",
   totalPressure: "Average pressure",
