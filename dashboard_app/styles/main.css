@@ -556,6 +556,10 @@ body {
   text-anchor: end;
 }
 
+.sankey-node-label--right {
+  font-size: 9px;
+}
+
 .sankey-node-count {
   fill: #60706d;
   font-size: 13px;

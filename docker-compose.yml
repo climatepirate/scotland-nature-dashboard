@@ -4,6 +4,7 @@ services:
     platform: linux/amd64
     container_name: scotland_nature_qgis_server
     ports:
+      - "80:80"
       - "8080:80"
     environment:
       HOME: "/var/lib/qgis"
@@ -26,6 +27,16 @@ services:
         add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin,Content-Type,Accept" always;
         EOF
+
+        if [ -f /io/workspace/dashboard_app/index.html ]; then
+          rm -rf /usr/share/nginx/html/*
+          cp -R /io/workspace/dashboard_app/. /usr/share/nginx/html/
+          if [ -d /io/workspace/Data ]; then
+            rm -rf /usr/share/nginx/html/Data
+            cp -R /io/workspace/Data /usr/share/nginx/html/Data
+          fi
+        fi
+
         exec /usr/local/bin/start-xvfb-nginx.sh
     volumes:
       - ./:/io/workspace:ro

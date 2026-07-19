@@ -377,9 +377,10 @@ function buildSankeySvg(model, width, height) {
     .map((node) => {
       const color = getCoarseColor(node.name);
       return `
-        <rect x="${leftX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}"></rect>
+        <rect x="${leftX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
+          <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
+        </rect>
         <text x="${leftX - 12}" y="${(leftLabelY.get(node.name) || node.centerY).toFixed(2)}" class="sankey-node-label sankey-node-label--left">${escapeHtml(node.name)}</text>
-        <text x="${leftX + nodeWidth + 10}" y="${(leftLabelY.get(node.name) || node.centerY).toFixed(2)}" class="sankey-node-count">${formatCount(node.count)}</text>
       `;
     })
     .join("");
@@ -393,9 +394,10 @@ function buildSankeySvg(model, width, height) {
       const rightCenterY = node.centerY;
 
       return `
-        <rect x="${rightX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}"></rect>
-        <text x="${rightX - 10}" y="${rightCenterY.toFixed(2)}" class="sankey-node-count sankey-node-count--right">${formatCount(node.count)}</text>
-        <text x="${rightX + nodeWidth + 12}" y="${rightCenterY.toFixed(2)}" class="sankey-node-label">${escapeHtml(node.name)}</text>
+        <rect x="${rightX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
+          <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
+        </rect>
+        <text x="${rightX + nodeWidth + 12}" y="${rightCenterY.toFixed(2)}" class="sankey-node-label sankey-node-label--right">${escapeHtml(node.name)}</text>
       `;
     })
     .join("");
