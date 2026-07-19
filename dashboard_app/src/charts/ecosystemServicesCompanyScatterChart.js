@@ -2,6 +2,18 @@ import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
  
 
 const SELECT_COARSE = "";
+const EXCLUDED_ISIC_SECTIONS = new Set([
+  "Administrative and support service activities",
+  "Financial and insurance activities",
+  "Information and communication",
+  "Professional, scientific and technical activities",
+  "Real estate activities",
+  "Wholesale and retail trade; repair of motor vehicles and motorcycles",
+  "Activities of extraterritorial organizations and bodies",
+  "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use",
+  "Other service activities",
+  "Public administration and defence; compulsory social security",
+]);
 
 function parseCsvLine(line) {
   const values = [];
@@ -87,10 +99,45 @@ function hashString(text) {
   return Math.abs(hash);
 }
 
-function colorForIsicSection(name) {
-  const hash = hashString(name);
-  const hue = hash % 360;
-  return `hsl(${hue}, 56%, 48%)`;
+const DEFAULT_SECTOR_PALETTE = [
+  "#2f7bbd",
+  "#f05a5a",
+  "#f29e2e",
+  "#2ca58d",
+  "#8e63ce",
+  "#e15f9a",
+  "#4b8b3b",
+  "#d98f2b",
+  "#3f78d4",
+  "#c94f4f",
+];
+
+const PRIMARY_RESOURCE_PALETTE = [
+  "#0f766e",
+  "#d97706",
+  "#0284c7",
+  "#65a30d",
+  "#ef4444",
+  "#7c3aed",
+  "#14b8a6",
+  "#f59e0b",
+  "#dc2626",
+  "#2563eb",
+  "#84cc16",
+  "#f97316",
+];
+
+function buildSectorColorMap(rows) {
+  const sectors = [...new Set(rows.map((row) => row.isicSection))].sort((a, b) => a.localeCompare(b));
+  const usePrimaryResourcePalette = rows.some((row) => row.coarseCategory === "Primary & Resource Industries");
+  const palette = usePrimaryResourcePalette ? PRIMARY_RESOURCE_PALETTE : DEFAULT_SECTOR_PALETTE;
+  const sectorColorMap = new Map();
+
+  sectors.forEach((sector, index) => {
+    sectorColorMap.set(sector, palette[index % palette.length]);
+  });
+
+  return sectorColorMap;
 }
 
 function buildRows(dashboardRows, profileRows) {
@@ -131,6 +178,10 @@ function buildRows(dashboardRows, profileRows) {
     const localAuthorityCode = (row.local_authority_code || "").trim();
 
     if (!coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
+      return;
+    }
+
+    if (EXCLUDED_ISIC_SECTIONS.has(isicSection)) {
       return;
     }
 
@@ -215,6 +266,48 @@ function computeLinearTrend(values) {
   return { slope, intercept };
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function lineSegmentIntersectionsForPlot(entry, xDomain, yDomain) {
+  const candidates = [];
+  const pushCandidate = (x, y) => {
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      candidates.push({ x, y });
+    }
+  };
+
+  const yFor = (x) => entry.trend.intercept + (entry.trend.slope * x);
+  const xFor = (y) => (y - entry.trend.intercept) / entry.trend.slope;
+
+  pushCandidate(xDomain[0], yFor(xDomain[0]));
+  pushCandidate(xDomain[1], yFor(xDomain[1]));
+
+  if (entry.trend.slope !== 0) {
+    pushCandidate(xFor(yDomain[0]), yDomain[0]);
+    pushCandidate(xFor(yDomain[1]), yDomain[1]);
+  }
+
+  return candidates.filter((point) => (
+    point.x >= xDomain[0] && point.x <= xDomain[1] && point.y >= yDomain[0] && point.y <= yDomain[1]
+  ));
+}
+
+function distanceToSegment(pointX, pointY, startX, startY, endX, endY) {
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const lengthSquared = (dx * dx) + (dy * dy);
+  if (!lengthSquared) {
+    return Math.hypot(pointX - startX, pointY - startY);
+  }
+
+  const t = clamp(((pointX - startX) * dx + (pointY - startY) * dy) / lengthSquared, 0, 1);
+  const projectionX = startX + (t * dx);
+  const projectionY = startY + (t * dy);
+  return Math.hypot(pointX - projectionX, pointY - projectionY);
+}
+
 function deterministicJitter(seedText, spread) {
   const seed = hashString(seedText);
   const normalized = ((seed % 10000) / 10000) - 0.5;
@@ -276,6 +369,50 @@ function drawChart(canvas, rows) {
 
   const xMedian = median(depValues);
   const yMedian = median(pressValues);
+  const sectorColorMap = buildSectorColorMap(rows);
+
+  const rowsBySector = new Map();
+  rows.forEach((row) => {
+    if (!rowsBySector.has(row.isicSection)) {
+      rowsBySector.set(row.isicSection, []);
+    }
+    rowsBySector.get(row.isicSection).push(row);
+  });
+
+  const trendEntries = [...rowsBySector.entries()]
+    .map(([isicSection, sectorRows]) => {
+      const trend = computeLinearTrend(sectorRows);
+      const r = computePearson(sectorRows);
+      return trend && Number.isFinite(r) ? { isicSection, sectorRows, trend, r } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.isicSection.localeCompare(b.isicSection));
+
+  const trendSegments = [];
+  trendEntries.forEach((entry) => {
+    const intersections = lineSegmentIntersectionsForPlot(entry, xDomain, yDomain);
+    if (intersections.length < 2) {
+      return;
+    }
+
+    const points = intersections
+      .map((point) => ({
+        x: xScale(point.x),
+        y: yScale(point.y),
+      }))
+      .sort((a, b) => a.x - b.x || a.y - b.y);
+
+    const segment = {
+      isicSection: entry.isicSection,
+      r: entry.r,
+      startX: points[0].x,
+      startY: points[0].y,
+      endX: points[points.length - 1].x,
+      endY: points[points.length - 1].y,
+    };
+
+    trendSegments.push(segment);
+  });
 
   context.strokeStyle = "#8aa09b";
   context.lineWidth = 1;
@@ -313,53 +450,13 @@ function drawChart(canvas, rows) {
   context.fillText("Pressure score", 0, 0);
   context.restore();
 
-  const rowsBySector = new Map();
-  rows.forEach((row) => {
-    if (!rowsBySector.has(row.isicSection)) {
-      rowsBySector.set(row.isicSection, []);
-    }
-    rowsBySector.get(row.isicSection).push(row);
-  });
-
-  const trendEntries = [...rowsBySector.entries()]
-    .map(([isicSection, sectorRows]) => {
-      const trend = computeLinearTrend(sectorRows);
-      const r = computePearson(sectorRows);
-      return trend && Number.isFinite(r) ? { isicSection, sectorRows, trend, r } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.isicSection.localeCompare(b.isicSection));
-
-  context.save();
-  context.beginPath();
-  context.rect(margin.left, margin.top, plotWidth, plotHeight);
-  context.clip();
-
-  trendEntries.forEach((entry) => {
-    const lineColor = colorForIsicSection(entry.isicSection);
-    const x1 = xDomain[0];
-    const x2 = xDomain[1];
-    const y1 = entry.trend.intercept + (entry.trend.slope * x1);
-    const y2 = entry.trend.intercept + (entry.trend.slope * x2);
-
-    context.strokeStyle = lineColor;
-    context.globalAlpha = 0.8;
-    context.lineWidth = 2;
-    context.beginPath();
-    context.moveTo(xScale(x1), yScale(y1));
-    context.lineTo(xScale(x2), yScale(y2));
-    context.stroke();
-  });
-
-  context.restore();
-
   const plottedPoints = [];
   rows.forEach((row) => {
     const x = xScale(row.dep + deterministicJitter(`${row.companyId}-dep`, 0.7));
     const y = yScale(row.press + deterministicJitter(`${row.companyId}-press`, 0.7));
     const radius = 2.8;
 
-    context.fillStyle = colorForIsicSection(row.isicSection);
+    context.fillStyle = sectorColorMap.get(row.isicSection) || "#66757a";
     context.globalAlpha = 0.52;
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
@@ -373,29 +470,26 @@ function drawChart(canvas, rows) {
     });
   });
 
-  trendEntries.forEach((entry, index) => {
-    const xEnd = xDomain[1];
-    const yEnd = entry.trend.intercept + (entry.trend.slope * xEnd);
-    const labelX = Math.min(width - 26, Math.max(margin.left + 10, xScale(xEnd) - 2));
-    const labelY = Math.min(margin.top + plotHeight - 10, Math.max(margin.top + 12, yScale(yEnd) - (index % 2 === 0 ? 8 : -8)));
-    const label = `r=${formatNumber(entry.r, 2)}`;
+  context.save();
+  context.beginPath();
+  context.rect(margin.left, margin.top, plotWidth, plotHeight);
+  context.clip();
 
-    context.font = "600 11px 'Avenir Next', 'Segoe UI', sans-serif";
-    context.textAlign = "left";
-    context.textBaseline = "middle";
-    const textWidth = context.measureText(label).width;
-
-    context.fillStyle = "rgba(255, 255, 255, 0.85)";
-    context.fillRect(labelX - 4, labelY - 8, textWidth + 8, 16);
-    context.strokeStyle = entry.isicSection ? colorForIsicSection(entry.isicSection) : "#425654";
-    context.lineWidth = 1;
-    context.strokeRect(labelX - 4, labelY - 8, textWidth + 8, 16);
-    context.fillStyle = colorForIsicSection(entry.isicSection);
-    context.fillText(label, labelX, labelY);
+  trendSegments.forEach((segment) => {
+    context.strokeStyle = sectorColorMap.get(segment.isicSection) || "#66757a";
+    context.globalAlpha = 0.42;
+    context.lineWidth = 3.5;
+    context.lineCap = "round";
+    context.beginPath();
+    context.moveTo(segment.startX, segment.startY);
+    context.lineTo(segment.endX, segment.endY);
+    context.stroke();
   });
 
+  context.restore();
+
   context.globalAlpha = 1;
-  return plottedPoints;
+  return { plottedPoints, trendSegments };
 }
 
 export function initEcosystemServicesCompanyScatterChart() {
@@ -418,8 +512,10 @@ export function initEcosystemServicesCompanyScatterChart() {
 
   let allRows = [];
   let plottedPoints = [];
+  let trendSegments = [];
   let renderQueued = false;
   let localCoarseCategory = SELECT_COARSE;
+  let tooltipMode = null;
 
   const setStatus = (text) => {
     statusElement.textContent = text;
@@ -449,6 +545,7 @@ export function initEcosystemServicesCompanyScatterChart() {
         chartRoot.classList.add("is-empty");
         canvas.style.display = "none";
         tooltip.style.display = "none";
+        tooltipMode = null;
         if (!localCoarseCategory) {
           setStatus("Select a coarse category to load company points.");
         } else {
@@ -464,7 +561,9 @@ export function initEcosystemServicesCompanyScatterChart() {
       const height = 968;
       canvas.width = width;
       canvas.height = height;
-      plottedPoints = drawChart(canvas, filteredRows);
+      const renderResult = drawChart(canvas, filteredRows);
+      plottedPoints = renderResult.plottedPoints;
+      trendSegments = renderResult.trendSegments;
 
       const r = computePearson(filteredRows);
       const rText = Number.isFinite(r) ? `Pearson r = ${formatNumber(r, 3)}` : "Pearson r unavailable";
@@ -484,6 +583,7 @@ export function initEcosystemServicesCompanyScatterChart() {
   chartRoot.addEventListener("pointermove", (event) => {
     if (!plottedPoints.length || canvas.style.display === "none") {
       tooltip.style.display = "none";
+      tooltipMode = null;
       return;
     }
 
@@ -504,7 +604,29 @@ export function initEcosystemServicesCompanyScatterChart() {
     }
 
     if (!nearest) {
-      tooltip.style.display = "none";
+      let nearestTrend = null;
+      let nearestTrendDistance = Infinity;
+
+      for (let i = 0; i < trendSegments.length; i += 1) {
+        const segment = trendSegments[i];
+        const distance = distanceToSegment(x, y, segment.startX, segment.startY, segment.endX, segment.endY);
+        if (distance <= 7 && distance < nearestTrendDistance) {
+          nearestTrend = segment;
+          nearestTrendDistance = distance;
+        }
+      }
+
+      if (!nearestTrend) {
+        tooltip.style.display = "none";
+        tooltipMode = null;
+        return;
+      }
+
+      tooltip.innerHTML = `<div><strong>${escapeHtml(nearestTrend.isicSection)}</strong></div><div>Trend line</div><div>r = ${formatNumber(nearestTrend.r, 3)}</div>`;
+      tooltip.style.display = "block";
+      tooltip.style.left = `${Math.min(canvas.width - 280, x + 12)}px`;
+      tooltip.style.top = `${Math.max(8, y + 12)}px`;
+      tooltipMode = "trend";
       return;
     }
 
@@ -513,10 +635,12 @@ export function initEcosystemServicesCompanyScatterChart() {
     tooltip.style.display = "block";
     tooltip.style.left = `${Math.min(canvas.width - 280, nearest.x + 12)}px`;
     tooltip.style.top = `${Math.max(8, nearest.y - 10)}px`;
+    tooltipMode = "point";
   });
 
   chartRoot.addEventListener("pointerleave", () => {
     tooltip.style.display = "none";
+    tooltipMode = null;
   });
 
   Promise.all([
