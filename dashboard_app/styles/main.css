@@ -18,13 +18,367 @@ body {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+}
+
+.app-shared-header-wrap {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  border-bottom: 1px solid #cfd8d4;
+  background: rgba(246, 250, 248, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.top-nav-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.top-nav-list {
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.top-nav-link {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #36504d;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.top-nav-link:hover {
+  border-color: #d4dfdb;
+  background: #f3f8f6;
+}
+
+.top-nav-link.is-active {
+  border-color: #a9c9c3;
+  color: #0f5b53;
+  background: #e6f2ef;
+}
+
+.app-page {
+  min-height: 100%;
+}
+
+.app-page-container {
+  width: 100%;
+}
+
+.placeholder-page {
+  max-width: 1440px;
+  margin: 16px auto;
+}
+
+.placeholder-page-body {
+  min-height: 200px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.placeholder-page-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.ecosystem-services-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.ecosystem-services-title-card .panel-head {
+  padding: 14px 16px;
+}
+
+.ecosystem-services-title-card .panel-title {
+  font-size: 1.15rem;
+}
+
+.ecosystem-services-filter-bar {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.ecosystem-services-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ecosystem-services-filter-reset {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ecosystem-services-reset-button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  background: #f8fbfa;
+  cursor: pointer;
+}
+
+.ecosystem-services-reset-button:hover {
+  border-color: #c6d4cf;
+  background: #edf5f1;
+}
+
+.ecosystem-services-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.ecosystem-services-section {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.ecosystem-services-slot {
+  padding: 12px;
+}
+
+.ecosystem-services-sankey-status {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.ecosystem-services-scatter-status {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.ecosystem-services-scatter-chart {
+  width: 100%;
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fcfefe 0%, #f8fbfa 100%);
+  overflow: hidden;
+}
+
+.ecosystem-scatter-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.scatter-axis-line {
+  stroke: #8aa09b;
+  stroke-width: 1;
+}
+
+.scatter-median-line {
+  stroke: #7a8886;
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+  opacity: 0.75;
+}
+
+.scatter-point {
+  stroke: #ffffff;
+  stroke-width: 1.2;
+  opacity: 0.82;
+}
+
+.scatter-label {
+  fill: #253534;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.scatter-label--left {
+  text-anchor: end;
+}
+
+.scatter-axis-title {
+  fill: #425654;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.scatter-axis-title--x {
+  text-anchor: middle;
+}
+
+.scatter-quadrant-label {
+  fill: #586967;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ecosystem-services-company-scatter-chart {
+  width: 100%;
+  min-height: 968px;
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fcfefe 0%, #f8fbfa 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.ecosystem-services-company-scatter-chart.is-empty::after {
+  content: "No Results";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.ecosystem-services-company-scatter-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ecosystem-services-company-scatter-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid rgba(20, 36, 35, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.ecosystem-services-company-scatter-filter-label {
+  color: #516563;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ecosystem-services-company-scatter-filter-input {
+  min-width: 210px;
+  border: 1px solid #c9d7d3;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: #1f2b2a;
+  background: #ffffff;
+}
+
+.ecosystem-services-company-scatter-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 7;
+  min-width: 210px;
+  max-width: 280px;
+  padding: 8px 10px;
+  border: 1px solid rgba(27, 44, 42, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  color: #1f2b2a;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.ecosystem-services-sankey-chart {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fcfefe 0%, #f8fbfa 100%);
+}
+
+.sankey-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 920px;
+}
+
+.sankey-side-title {
+  fill: #445654;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sankey-node-label {
+  fill: #1f2b2a;
+  font-size: 14px;
+  dominant-baseline: middle;
+}
+
+.sankey-node-label--left {
+  text-anchor: end;
+}
+
+.sankey-node-count {
+  fill: #60706d;
+  font-size: 13px;
+  dominant-baseline: middle;
+}
+
+.sankey-node-count--right {
+  text-anchor: end;
+}
+
+.ecosystem-services-slot .placeholder {
+  margin: 0;
+}
+
+.ecosystem-services-slot--sankey .placeholder {
+  min-height: 320px;
+}
+
+.ecosystem-services-slot--scatter .placeholder {
+  min-height: 300px;
+}
+
+.ecosystem-services-slot--company-scatter .placeholder {
+  min-height: 340px;
+}
+
+.ecosystem-services-slot--summary .placeholder {
+  min-height: 260px;
+}
+
 .dashboard-shell {
   min-height: 100vh;
   max-width: 1440px;
   margin: 0 auto;
   padding: 16px;
   display: grid;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto;
   gap: 12px;
 }
 
@@ -520,7 +874,8 @@ body {
 
 @media (max-width: 1100px) {
   .top-split,
-  .bottom-split {
+  .bottom-split,
+  .ecosystem-services-two-col {
     grid-template-columns: 1fr;
   }
 
@@ -531,8 +886,26 @@ body {
 }
 
 @media (max-width: 720px) {
+  .top-nav-list {
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .top-nav-link {
+    white-space: nowrap;
+  }
+
   .map-selector-row {
     grid-template-columns: 1fr;
+  }
+
+  .ecosystem-services-filter-bar,
+  .ecosystem-services-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ecosystem-services-filter-reset {
+    justify-content: flex-start;
   }
 
   .global-filter-grid {

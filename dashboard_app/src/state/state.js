@@ -1,6 +1,7 @@
 const initialState = {
   localAuthorityCode: "All Scotland",
   coarseCategory: "All Categories",
+  isicSection: "All ISIC Sections",
   overallMapMetric: "Company concentration",
   selectedDependency: null,
   selectedPressure: null,

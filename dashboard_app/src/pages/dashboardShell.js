@@ -6,7 +6,6 @@ import { createDependencyRidgelinePanel } from "../components/dependencyRidgelin
 import { createPressureRidgelinePanel } from "../components/pressureRidgelinePanel.js";
 import { createStatisticsPanel } from "../components/statisticsPanel.js";
 import { createGlobalFilterBar } from "../layout/filterBar.js";
-import { createHeader } from "../layout/header.js";
 
 function createColumn(mapTitle, mapSubtitle, chartTitle, chartSubtitle) {
   const column = document.createElement("section");
@@ -60,6 +59,6 @@ export function renderDashboardShell() {
     pressureColumn,
   );
 
-  shell.append(createHeader(), topSplit, bottomSplit);
+  shell.append(topSplit, bottomSplit);
   return shell;
 }
