@@ -200,6 +200,24 @@ function createSectionCard(title, subtitle, bodyClassName) {
   return card;
 }
 
+function createEcosystemServicesInterpretationPanel() {
+  const panel = document.createElement("section");
+  panel.className = "panel ecosystem-services-interpretation-panel";
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3 class="panel-title">How to interpret this page</h3>
+    </div>
+    <div class="ecosystem-services-interpretation-body">
+      <p>The Sankey diagram shows how businesses are distributed from broad business categories into individual ISIC sectors.</p>
+      <p>The dependency and pressure plots compare nature-related scores across sectors, helping identify industries with relatively greater interactions with ecosystem services.</p>
+      <p>The company-level scatter illustrates the relationship between ecosystem service dependency and environmental pressure for businesses within the selected filters.</p>
+      <p>The ranking table summarises sector and company performance, supporting comparison and prioritisation rather than representing absolute measures of nature-related risk.</p>
+    </div>
+  `;
+
+  return panel;
+}
+
 export function createEcosystemServicesPage() {
   const page = document.createElement("main");
   page.className = "ecosystem-services-page";
@@ -256,6 +274,7 @@ export function createEcosystemServicesPage() {
     midGrid,
     companyScatterSection,
     summaryTableSection,
+    createEcosystemServicesInterpretationPanel(),
   );
 
   return page;

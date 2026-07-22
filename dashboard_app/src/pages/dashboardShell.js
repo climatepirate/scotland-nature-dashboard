@@ -17,6 +17,24 @@ function createColumn(mapTitle, mapSubtitle, chartTitle, chartSubtitle) {
   return column;
 }
 
+function createOverviewInterpretationPanel() {
+  const panel = document.createElement("section");
+  panel.className = "panel overview-interpretation-panel";
+  panel.innerHTML = `
+    <div class="panel-head">
+      <h3 class="panel-title">How to interpret this page</h3>
+    </div>
+    <div class="overview-interpretation-body">
+      <p>Business statistics summarise the scale and characteristics of the selected business population.</p>
+      <p>The maps identify where businesses, ecosystem service dependencies and nature-related pressures are spatially concentrated.</p>
+      <p>The distribution plots compare how dependency and pressure scores vary between broad business categories.</p>
+      <p>This page provides an overview for exploration and screening rather than a detailed assessment of individual businesses.</p>
+    </div>
+  `;
+
+  return panel;
+}
+
 export function renderDashboardShell() {
   const shell = document.createElement("main");
   shell.className = "dashboard-shell";
@@ -59,6 +77,6 @@ export function renderDashboardShell() {
     pressureColumn,
   );
 
-  shell.append(topSplit, bottomSplit);
+  shell.append(topSplit, bottomSplit, createOverviewInterpretationPanel());
   return shell;
 }

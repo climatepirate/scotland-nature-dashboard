@@ -2261,3 +2261,60 @@ body {
   color: #4f3f72;
   border-color: #d8c4ee;
 }
+
+.overview-interpretation-panel {
+  border-style: dashed;
+  border-color: #c8d7d2;
+  background: linear-gradient(180deg, #f9fcfb 0%, #f4f8f6 100%);
+}
+
+.overview-interpretation-body {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.overview-interpretation-body p {
+  margin: 0;
+  color: #415b56;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ecosystem-services-interpretation-panel {
+  border-style: dashed;
+  border-color: #c8d7d2;
+  background: linear-gradient(180deg, #f9fcfb 0%, #f4f8f6 100%);
+}
+
+.ecosystem-services-interpretation-body {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.ecosystem-services-interpretation-body p {
+  margin: 0;
+  color: #415b56;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.business-vulnerability-interpretation-panel {
+  border-style: dashed;
+  border-color: #c8d7d2;
+  background: linear-gradient(180deg, #f9fcfb 0%, #f4f8f6 100%);
+}
+
+.business-vulnerability-interpretation-body {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.business-vulnerability-interpretation-body p {
+  margin: 0;
+  color: #415b56;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
