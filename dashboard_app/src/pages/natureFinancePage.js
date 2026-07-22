@@ -29,6 +29,7 @@ export function createNatureFinancePage() {
     <div class="panel-head">
       <h2 class="panel-title">Economic Exposure &amp; Nature Finance Prioritisation</h2>
       <p class="panel-subtitle">Combining sector vulnerability with Scottish economic activity to identify potential priorities for resilience and nature investment.</p>
+      <p class="panel-subtitle"> Only the <strong>TOP 9 </strong> ISIC sectors contributing to the Scottish economy are used in this analysis - as found in 2026 Economic Statistics.</p>
     </div>
   `;
 

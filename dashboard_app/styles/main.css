@@ -28,9 +28,39 @@ body {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px 16px 0;
+  padding: 16px 16px 8px;
+}
+.dashboard-subtitle {
+    margin: 4px 0 0;
+    font-size: 1rem;
+    color: #5f6f72;
+    font-weight: 600;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
+.header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-logos {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.header-logo {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+}
+.header-logo-large {
+    height: 120px;
+}
 .top-nav {
   position: sticky;
   top: 0;
@@ -116,7 +146,7 @@ body {
 }
 
 .ecosystem-services-title-card .panel-title {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 
 .ecosystem-services-filter-bar {
@@ -161,12 +191,16 @@ body {
 }
 
 .ecosystem-services-section {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .ecosystem-services-slot {
   padding: 12px;
+  min-height: 0;
 }
 
 .ecosystem-services-sankey-status {
@@ -607,17 +641,17 @@ body {
 }
 
 .header {
-  padding: 14px 16px;
+  padding: 2px 16px;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 1.3rem;
-  letter-spacing: 0.01em;
+  font-size: 1.9rem;
+  letter-spacing: 0.02em;
 }
 
 .header p {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   color: var(--muted);
 }
 
@@ -708,7 +742,7 @@ body {
 
 .panel-title {
   margin: 0;
-  font-size: 0.98rem;
+  font-size: 1.2fkorem;
   font-weight: 700;
 }
 
@@ -979,11 +1013,11 @@ body {
 }
 
 .statistics-panel .panel-title {
-  font-size: 1.08rem;
+  font-size: 1.2rem;
 }
 
 .statistics-panel .panel-subtitle {
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.35;
 }
 
@@ -1040,20 +1074,20 @@ body {
 }
 
 .statistics-metric-value[data-role="location"] {
-  font-size: 1.55rem;
+  font-size: 1.2rem;
   font-weight: 750;
 }
 
 .statistics-metric-value[data-role="businesses"],
 .statistics-metric-value[data-role="dependency"],
 .statistics-metric-value[data-role="pressure"] {
-  font-size: clamp(1.95rem, 2.1vw, 2.4rem);
-  font-weight: 800;
+  font-size: clamp(1.2rem, 1vw, 1.2rem);
+  font-weight: 750;
   letter-spacing: -0.01em;
 }
 
 .statistics-metric-value[data-role="service"] {
-  font-size: clamp(1.5rem, 1.8vw, 2rem);
+  font-size: clamp(1.2rem, 1.8vw, 1.8rem);
   font-weight: 800;
   line-height: 1.22;
 }
@@ -1786,7 +1820,7 @@ body {
 }
 
 .nature-finance-kpi-value {
-  font-size: clamp(1.55rem, 1.95vw, 2.15rem);
+  font-size: clamp(1.4rem, 1.95vw, 1.4rem);
 }
 
 .nature-finance-kpi-detail {

@@ -4,11 +4,11 @@ export function createOverallBusinessMapPanel() {
 
   panel.innerHTML = `
     <div class="panel-head">
-      <h2 class="panel-title">Overall Business Map</h2>
-      <p class="panel-subtitle">Initial interactive basemap for Scotland (no thematic layers yet)</p>
+      <h2 class="panel-title">Scottish Context Map</h2>
+      <p class="panel-subtitle">Concentration of Scottish Companies and Contextual Layers</p>
     </div>
     <div class="map-panel-shell">
-      <div id="overall-business-map" class="map-canvas" aria-label="Overall business map"></div>
+      <div id="overall-business-map" class="map-canvas" aria-label="Scottish Context Map"></div>
     </div>
     <div class="map-selector-row">
       <div class="map-selector-shell">

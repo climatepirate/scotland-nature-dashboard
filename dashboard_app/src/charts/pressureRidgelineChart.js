@@ -12,10 +12,10 @@ const CORE_CATEGORY_ORDER = [
 ];
 const UNCLASSIFIED = "Unclassified";
 const CATEGORY_COLORS = {
-  "Business & Property Services": "#12665d",
-  "Consumer & Visitor Economy": "#4c8a79",
-  "Primary & Resource Industries": "#ab854c",
-  "Public & Community Services": "#6f8896",
+  "Business & Property Services": "#6b6fae",
+  "Consumer & Visitor Economy": "#3d8a95",
+  "Primary & Resource Industries": "#d18b2f",
+  "Public & Community Services": "#6c9b57",
   Unclassified: "#9aa8a2",
 };
 const PRESSURE_OPTION_LABELS = [

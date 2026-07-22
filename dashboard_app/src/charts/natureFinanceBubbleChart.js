@@ -1,10 +1,9 @@
 import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js";
 
 const COARSE_COLORS = {
-  "Business & Property Services": "#12665d",
-  "Consumer & Visitor Economy": "#4c8a79",
-  "Primary & Resource Industries": "#ab854c",
-  "Public & Community Services": "#7a6a9f",
+  "Consumer & Visitor Economy": "#3d8a95",
+  "Primary & Resource Industries": "#d18b2f",
+  "Public & Community Services": "#6c9b57",
   Unclassified: "#8a8f99",
 };
 

@@ -2,7 +2,7 @@ const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
   { id: "ecosystem-services", label: "Sector Analysis" },
   { id: "pressures", label: "Business Vulnerability" },
-  { id: "vulnerability", label: "Nature Finance" },
+  { id: "vulnerability", label: "Economic Exposure" },
   { id: "glossary-methodology", label: "Glossary & Methodology" },
 ];
 

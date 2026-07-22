@@ -5,7 +5,7 @@ export function createDependencyMapPanel() {
   panel.innerHTML = `
     <div class="panel-head">
       <h2 class="panel-title">Ecosystem Dependency Map</h2>
-      <p class="panel-subtitle">Placeholder for selected ecosystem service dependency layer</p>
+      <p class="panel-subtitle">Mean Ecosystem Service Dependency - filter for individual services</p>
     </div>
     <div class="map-panel-shell">
       <div id="ecosystem-dependency-map" class="map-canvas" aria-label="Ecosystem dependency map"></div>

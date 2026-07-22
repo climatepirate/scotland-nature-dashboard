@@ -281,7 +281,7 @@ function spreadLabelCenters(nodes, minGap, minY, maxY) {
 }
 
 function buildSankeySvg(model, width, height) {
-  const padding = { top: 52, right: 490, bottom: 24, left: 220 };
+  const padding = { top: 40, right: 490, bottom: 16, left: 220 };
   const nodeWidth = 16;
   const leftX = padding.left;
   const rightX = width - padding.right - nodeWidth;
@@ -289,8 +289,8 @@ function buildSankeySvg(model, width, height) {
 
   const leftCount = Math.max(model.leftNodes.length, 1);
   const rightCount = Math.max(model.rightNodes.length, 1);
-  const leftGap = Math.min(38, Math.max(16, chartHeight / (leftCount * 2.3)));
-  const rightGap = Math.min(34, Math.max(12, chartHeight / (rightCount * 3.2)));
+  const leftGap = Math.min(34, Math.max(14, chartHeight / (leftCount * 2.5)));
+  const rightGap = Math.min(30, Math.max(10, chartHeight / (rightCount * 3.5)));
 
   const leftTotal = model.leftNodes.reduce((sum, node) => sum + node.weight, 0);
   const rightTotal = model.rightNodes.reduce((sum, node) => sum + node.weight, 0);
@@ -347,8 +347,8 @@ function buildSankeySvg(model, width, height) {
     centerY: node.y + ((rightThicknessByName.get(node.name) || node.h) / 2),
   }));
 
-  const leftLabelY = spreadLabelCenters(leftNodes, 24, padding.top + 10, padding.top + chartHeight - 10);
-  const rightLabelY = spreadLabelCenters(rightNodes, 24, padding.top + 10, padding.top + chartHeight - 10);
+  const leftLabelY = spreadLabelCenters(leftNodes, 22, padding.top + 8, padding.top + chartHeight - 8);
+  const rightLabelY = spreadLabelCenters(rightNodes, 22, padding.top + 8, padding.top + chartHeight - 8);
 
   const coarseSetByIsic = new Map();
   model.flows.forEach((flow) => {
@@ -380,7 +380,7 @@ function buildSankeySvg(model, width, height) {
         <rect x="${leftX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
           <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
         </rect>
-        <text x="${leftX - 12}" y="${(leftLabelY.get(node.name) || node.centerY).toFixed(2)}" class="sankey-node-label sankey-node-label--left">${escapeHtml(node.name)}</text>
+        <text x="${leftX - 12}" y="${(leftLabelY.get(node.name) || node.centerY).toFixed(2)}" class="sankey-node-label sankey-node-label--left">${escapeHtml(toIsicDisplayLabel(node.name))}</text>
       `;
     })
     .join("");
@@ -397,14 +397,14 @@ function buildSankeySvg(model, width, height) {
         <rect x="${rightX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
           <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
         </rect>
-        <text x="${rightX + nodeWidth + 12}" y="${rightCenterY.toFixed(2)}" class="sankey-node-label sankey-node-label--right">${escapeHtml(node.name)}</text>
+        <text x="${rightX + nodeWidth + 12}" y="${rightCenterY.toFixed(2)}" class="sankey-node-label sankey-node-label--right">${escapeHtml(toIsicDisplayLabel(node.name))}</text>
       `;
     })
     .join("");
 
   const headerMarkup = `
-    <text x="${leftX}" y="26" class="sankey-side-title">Coarse Category</text>
-    <text x="${rightX + nodeWidth}" y="26" class="sankey-side-title">ISIC Section</text>
+    <text x="${leftX}" y="22" class="sankey-side-title">Coarse Category</text>
+    <text x="${rightX + nodeWidth}" y="22" class="sankey-side-title">ISIC Section</text>
   `;
 
   return `
@@ -460,11 +460,11 @@ export function initEcosystemServicesSankeyChart() {
       }
 
       const width = Math.max(920, chartRoot.clientWidth || 0);
-      const baseHeight = Math.max(460, Math.max(model.leftNodes.length, model.rightNodes.length) * 31 + 96);
-      const rightLabelGap = 30;
+      const baseHeight = Math.max(400, Math.max(model.leftNodes.length, model.rightNodes.length) * 27 + 78);
+      const rightLabelGap = 24;
       const rightLabelHeight = model.rightNodes.length > 1
-        ? ((model.rightNodes.length - 1) * rightLabelGap) + 130
-        : 460;
+        ? ((model.rightNodes.length - 1) * rightLabelGap) + 106
+        : 400;
       const dynamicHeight = Math.max(baseHeight, rightLabelHeight);
       chartRoot.innerHTML = buildSankeySvg(model, width, dynamicHeight);
       setStatus(`${formatCount(model.totalCount)} businesses represented in current flow.`);
@@ -499,7 +499,7 @@ export function initEcosystemServicesSankeyChart() {
     const isicSections = [...new Set(sourceRows.map((row) => row.firstIsicSection))].sort((a, b) => a.localeCompare(b));
     ensureOption(isicSelect, ALL_ISIC, ALL_ISIC);
     isicSections.forEach((section) => {
-      ensureOption(isicSelect, section, section);
+      ensureOption(isicSelect, section, toIsicDisplayLabel(section));
     });
 
     syncFiltersFromState();
@@ -548,4 +548,12 @@ export function initEcosystemServicesSankeyChart() {
       setStatus(`Unable to load Sankey data: ${error?.message || error}`);
       chartRoot.innerHTML = '<div class="placeholder"><strong>Load Error</strong>The Sankey module could not be initialized.</div>';
     });
+}
+
+const ISIC_DISPLAY_ALIASES = {
+  "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use": "Activities of households as employers",
+};
+
+function toIsicDisplayLabel(value) {
+  return ISIC_DISPLAY_ALIASES[value] || value;
 }

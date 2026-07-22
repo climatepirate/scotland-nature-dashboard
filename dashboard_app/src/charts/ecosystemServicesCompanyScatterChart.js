@@ -1,7 +1,7 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
  
 
-const SELECT_COARSE = "";
+const DEFAULT_COARSE_CATEGORY = "Primary & Resource Industries";
 const EXCLUDED_ISIC_SECTIONS = new Set([
   "Administrative and support service activities",
   "Financial and insurance activities",
@@ -514,7 +514,7 @@ export function initEcosystemServicesCompanyScatterChart() {
   let plottedPoints = [];
   let trendSegments = [];
   let renderQueued = false;
-  let localCoarseCategory = SELECT_COARSE;
+  let localCoarseCategory = DEFAULT_COARSE_CATEGORY;
   let tooltipMode = null;
 
   const setStatus = (text) => {
@@ -523,11 +523,16 @@ export function initEcosystemServicesCompanyScatterChart() {
 
   const populateCoarseFilter = () => {
     coarseSelect.innerHTML = "";
-    ensureOption(coarseSelect, SELECT_COARSE, "Select coarse category");
     const categories = [...new Set(allRows.map((row) => row.coarseCategory))].sort((a, b) => a.localeCompare(b));
     categories.forEach((category) => {
       ensureOption(coarseSelect, category, category);
     });
+    if (!categories.includes(localCoarseCategory)) {
+      localCoarseCategory = categories.includes(DEFAULT_COARSE_CATEGORY)
+        ? DEFAULT_COARSE_CATEGORY
+        : (categories[0] || "");
+    }
+
     coarseSelect.value = localCoarseCategory;
   };
 
@@ -546,11 +551,7 @@ export function initEcosystemServicesCompanyScatterChart() {
         canvas.style.display = "none";
         tooltip.style.display = "none";
         tooltipMode = null;
-        if (!localCoarseCategory) {
-          setStatus("Select a coarse category to load company points.");
-        } else {
-          setStatus("No companies available for the selected coarse category.");
-        }
+        setStatus("No companies available for the selected coarse category.");
         return;
       }
 
@@ -572,7 +573,7 @@ export function initEcosystemServicesCompanyScatterChart() {
   };
 
   coarseSelect.addEventListener("change", (event) => {
-    localCoarseCategory = event.target.value || SELECT_COARSE;
+    localCoarseCategory = event.target.value || localCoarseCategory;
     queueRender();
   });
 

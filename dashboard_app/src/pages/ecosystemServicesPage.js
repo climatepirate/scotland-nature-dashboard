@@ -31,7 +31,7 @@ function createSankeySection() {
 
   const heading = document.createElement("h3");
   heading.className = "panel-title";
-  heading.textContent = "Ecosystem Service Dependency Flow (Sankey)";
+  heading.textContent = "Coarse Category ISIC Sector Breakdown";
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
@@ -227,7 +227,7 @@ export function createEcosystemServicesPage() {
   titleCard.innerHTML = `
     <div class="panel-head">
       <h2 class="panel-title">Sector Analysis</h2>
-      <p class="panel-subtitle">Page structure scaffold for upcoming visualisations.</p>
+      <p class="panel-subtitle"> Introducing ISIC Sections and a detailed analysis of individual ecosystem dependencies and pressures.</p>
     </div>
   `;
 
