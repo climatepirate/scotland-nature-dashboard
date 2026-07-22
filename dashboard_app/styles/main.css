@@ -804,6 +804,72 @@ body {
   justify-self: end;
 }
 
+.vulnerability-category-legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 560;
+  width: min(190px, calc(100% - 20px));
+  padding: 8px 10px;
+  border: 1px solid rgba(24, 36, 35, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(1.5px);
+}
+
+.vulnerability-category-legend-title {
+  margin-bottom: 6px;
+  color: #152826;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.vulnerability-category-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.vulnerability-category-legend-row:last-of-type {
+  margin-bottom: 6px;
+}
+
+.vulnerability-category-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(35, 37, 34, 0.42);
+  flex-shrink: 0;
+}
+
+.vulnerability-category-legend-swatch--high {
+  background: #8E3B46;
+}
+
+.vulnerability-category-legend-swatch--moderate {
+  background: #C98B4A;
+}
+
+.vulnerability-category-legend-swatch--low {
+  background: #E8D8A8;
+}
+
+.vulnerability-category-legend-label {
+  color: #223a36;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.vulnerability-category-legend-note {
+  color: #405a54;
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
 .map-selector-shell {
   margin: 0 12px 12px;
   padding: 10px 12px;
@@ -1090,6 +1156,517 @@ body {
   margin-bottom: 6px;
 }
 
+.business-vulnerability-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.business-vulnerability-kpi-row {
+  min-width: 0;
+}
+
+.business-vulnerability-top-split {
+  display: grid;
+  grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.business-vulnerability-kpi-grid {
+  grid-template-columns: 1fr;
+}
+
+.business-vulnerability-kpi-card {
+  min-height: 138px;
+}
+
+.business-vulnerability-kpi-card--primary {
+  grid-column: span 1;
+  min-height: 176px;
+  position: relative;
+}
+
+.business-vulnerability-kpi-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.business-vulnerability-info-popover-shell {
+  position: relative;
+  z-index: 1200;
+}
+
+.business-vulnerability-info-trigger {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #b9cbc6;
+  background: #f2f8f6;
+  color: #2d4742;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.business-vulnerability-info-trigger:hover,
+.business-vulnerability-info-trigger:focus-visible {
+  border-color: #7daea2;
+  background: #e6f2ef;
+  outline: none;
+}
+
+.business-vulnerability-info-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(92vw, 380px);
+  border: 1px solid #c8d7d2;
+  border-radius: 12px;
+  background: #f9fcfb;
+  box-shadow: 0 12px 34px rgba(22, 44, 40, 0.24);
+  padding: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+}
+
+.business-vulnerability-info-popover.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.business-vulnerability-info-title {
+  margin: 0 0 6px;
+  color: #233b37;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.business-vulnerability-info-text {
+  margin: 0 0 8px;
+  color: #3a5550;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.business-vulnerability-info-chart {
+  width: 100%;
+  min-height: 200px;
+  color: #324a46;
+}
+
+.business-vulnerability-info-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.business-vulnerability-info-empty {
+  margin: 0;
+  color: #47615c;
+  font-size: 0.76rem;
+}
+
+.business-vulnerability-info-axis-label,
+.business-vulnerability-info-axis-tick {
+  fill: #2f4641;
+  font-size: 10px;
+}
+
+.business-vulnerability-info-bar {
+  fill: #7aa79c;
+}
+
+.business-vulnerability-kpi-value {
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.business-vulnerability-kpi-value--primary {
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.business-vulnerability-kpi-metric {
+  color: #2e4441;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.business-vulnerability-kpi-subtitle {
+  margin: 0;
+}
+
+.business-vulnerability-area-top-list {
+  margin-top: 8px;
+}
+
+.business-vulnerability-area-top-head {
+  margin-bottom: 6px;
+  color: #3f5a55;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.business-vulnerability-area-top-rows {
+  display: grid;
+  gap: 5px;
+}
+
+.business-vulnerability-area-top-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.business-vulnerability-area-top-rank {
+  color: #31504a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.business-vulnerability-area-top-name {
+  color: #26423d;
+  font-size: 0.74rem;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.business-vulnerability-area-top-score {
+  color: #26423d;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.business-vulnerability-area-top-bar-track {
+  grid-column: 2 / 4;
+  height: 6px;
+  border-radius: 999px;
+  border: 1px solid #d8e4df;
+  background: #f2f7f5;
+  overflow: hidden;
+}
+
+.business-vulnerability-area-top-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #8E3B46;
+}
+
+.business-vulnerability-area-top-empty {
+  margin: 0;
+  color: #516a65;
+  font-size: 0.74rem;
+}
+
+.business-vulnerability-overview-breakdown-mount {
+  margin-top: 8px;
+}
+
+.business-vulnerability-overview-breakdown {
+  display: grid;
+  gap: 6px;
+}
+
+.business-vulnerability-overview-breakdown-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.6fr) minmax(0, 3fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.business-vulnerability-overview-breakdown-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #314947;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.business-vulnerability-overview-breakdown-track {
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid #d7e3df;
+  background: #f2f7f5;
+  overflow: hidden;
+}
+
+.business-vulnerability-overview-breakdown-fill {
+  height: 100%;
+}
+
+.business-vulnerability-overview-breakdown-fill--high {
+  background: #8E3B46;
+}
+
+.business-vulnerability-overview-breakdown-fill--moderate {
+  background: #C98B4A;
+}
+
+.business-vulnerability-overview-breakdown-fill--low {
+  background: #E8D8A8;
+}
+
+.business-vulnerability-overview-breakdown-value,
+.business-vulnerability-overview-breakdown-count {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #2e4441;
+  font-variant-numeric: tabular-nums;
+}
+
+.business-vulnerability-overview-breakdown-note {
+  margin: 8px 0 0;
+  color: #47615c;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.business-vulnerability-filter-bar {
+  padding: 12px 16px;
+}
+
+.business-vulnerability-filter-bar .global-filter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.business-vulnerability-map-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.business-vulnerability-map-panel .map-panel-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.business-vulnerability-map-panel .map-canvas {
+  min-height: 0;
+  height: 100%;
+}
+
+.business-vulnerability-profile-panel {
+  min-width: 0;
+}
+
+.business-vulnerability-profile-head {
+  gap: 4px;
+}
+
+.business-vulnerability-profile-table-shell {
+  max-height: 560px;
+  overflow: visible;
+  border: 1px solid #d7e3df;
+  border-radius: 14px;
+}
+
+.business-vulnerability-profile-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.business-vulnerability-profile-col-entity {
+  width: 24%;
+}
+
+.business-vulnerability-profile-col-score {
+  width: 16%;
+}
+
+.business-vulnerability-profile-col-services {
+  width: 60%;
+}
+
+.business-vulnerability-profile-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  text-align: left;
+  padding: 12px 14px;
+  background: #e7f2ee;
+  color: #23403a;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #cddbd6;
+}
+
+.business-vulnerability-profile-table tbody tr:nth-child(odd) {
+  background: #fbfdfc;
+}
+
+.business-vulnerability-profile-table tbody tr:nth-child(even) {
+  background: #f3f8f6;
+}
+
+.business-vulnerability-profile-table tbody tr:hover {
+  background: #eaf4f1;
+}
+
+.business-vulnerability-profile-table tbody th,
+.business-vulnerability-profile-table tbody td {
+  position: relative;
+  z-index: 1;
+  padding: 12px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid #dde9e5;
+}
+
+.business-vulnerability-profile-table tbody tr:hover th,
+.business-vulnerability-profile-table tbody tr:hover td {
+  z-index: 8;
+}
+
+.business-vulnerability-profile-entity {
+  font-size: 0.86rem;
+  color: #1f3732;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.business-vulnerability-profile-value {
+  font-size: 0.86rem;
+  color: #1f3732;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.business-vulnerability-profile-services {
+  min-width: 0;
+}
+
+.business-vulnerability-profile-squares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.business-vulnerability-profile-square {
+  position: relative;
+  z-index: 9;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid rgba(22, 34, 31, 0.14);
+  box-shadow: 0 1px 0 rgba(18, 44, 39, 0.08);
+  transition: transform 140ms ease, box-shadow 180ms ease;
+}
+
+.business-vulnerability-profile-square:hover,
+.business-vulnerability-profile-square:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 38, 33, 0.18);
+}
+
+.business-vulnerability-profile-square:focus {
+  outline: 2px solid #4f8b81;
+  outline-offset: 1px;
+}
+
+.business-vulnerability-profile-square--high {
+  background: #8E3B46;
+}
+
+.business-vulnerability-profile-square--moderate {
+  background: #C98B4A;
+}
+
+.business-vulnerability-profile-square--low {
+  background: #E8D8A8;
+}
+
+.business-vulnerability-profile-tooltip {
+  position: absolute;
+  right: 0;
+  left: auto;
+  bottom: calc(100% + 10px);
+  transform: translateY(4px);
+  min-width: 210px;
+  max-width: 280px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(21, 36, 33, 0.96);
+  color: #f3f8f6;
+  box-shadow: 0 10px 26px rgba(17, 34, 30, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 20;
+}
+
+.business-vulnerability-profile-tooltip::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  left: auto;
+  top: 100%;
+  border-width: 6px 5px 0;
+  border-style: solid;
+  border-color: rgba(21, 36, 33, 0.96) transparent transparent;
+}
+
+.business-vulnerability-profile-square:hover .business-vulnerability-profile-tooltip,
+.business-vulnerability-profile-square:focus .business-vulnerability-profile-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.business-vulnerability-profile-tooltip-title {
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+.business-vulnerability-profile-tooltip-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: #dfe9e6;
+}
+
+.business-vulnerability-profile-tooltip-line strong {
+  font-weight: 700;
+  color: #ffffff;
+  text-align: right;
+}
+
+.business-vulnerability-profile-empty,
+.business-vulnerability-profile-no-results {
+  color: #516a65;
+  font-size: 0.8rem;
+}
+
+.business-vulnerability-profile-no-results {
+  text-align: left;
+}
+
 @media (max-width: 1100px) {
   .top-split,
   .bottom-split,
@@ -1097,9 +1674,21 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .business-vulnerability-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .business-vulnerability-kpi-card--primary {
+    grid-column: span 2;
+  }
+
   .top-left-column,
   .top-right-column {
     grid-template-rows: auto;
+  }
+
+  .business-vulnerability-top-split {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1117,9 +1706,53 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .business-vulnerability-profile-col-entity {
+    width: 34%;
+  }
+
+  .business-vulnerability-profile-col-score {
+    width: 22%;
+  }
+
+  .business-vulnerability-profile-col-services {
+    width: 44%;
+  }
+
+  .business-vulnerability-profile-table thead th,
+  .business-vulnerability-profile-table tbody th,
+  .business-vulnerability-profile-table tbody td {
+    padding: 10px;
+  }
+
+  .business-vulnerability-profile-square {
+    width: 16px;
+    height: 16px;
+  }
+
   .ecosystem-services-filter-bar,
   .ecosystem-services-filter-grid {
     grid-template-columns: 1fr;
+  }
+
+  .business-vulnerability-filter-bar .global-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .business-vulnerability-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .business-vulnerability-kpi-card--primary {
+    grid-column: span 1;
+  }
+
+  .business-vulnerability-overview-breakdown-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .business-vulnerability-info-popover {
+    right: -8px;
   }
 
   .ecosystem-services-filter-reset {

@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scotland Nature-Risk Dashboard</title>
+  <link rel="icon" href="data:," />
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -14,6 +15,12 @@
 </head>
 <body>
   <div id="app"></div>
+  <script>
+    if (window.location.protocol === "file:") {
+      const target = `http://127.0.0.1:8000/dashboard_app/index.html${window.location.hash || ""}`;
+      window.location.replace(target);
+    }
+  </script>
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="

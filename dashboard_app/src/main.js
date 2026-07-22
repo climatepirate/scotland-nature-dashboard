@@ -10,6 +10,9 @@ import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServi
 import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js";
 import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js";
 import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js";
+import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js";
+import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js";
+import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js";
 
 const appRoot = document.getElementById("app");
 const dashboardShell = renderDashboardShell();
@@ -31,3 +34,6 @@ initEcosystemServicesCoarseScatterChart();
 initEcosystemServicesIsicScatterChart();
 initEcosystemServicesCompanyScatterChart();
 initEcosystemServicesSummaryRankingTable();
+initBusinessVulnerabilitySummaryCards();
+initBusinessVulnerabilityMap();
+initBusinessVulnerabilityProfileTable();

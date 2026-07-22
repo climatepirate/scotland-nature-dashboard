@@ -1,8 +1,8 @@
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
   { id: "ecosystem-services", label: "Sector Analysis" },
-  { id: "pressures", label: "Pressures" },
-  { id: "vulnerability", label: "Vulnerability" },
+  { id: "pressures", label: "Business Vulnerability" },
+  { id: "vulnerability", label: "Nature Finance" },
 ];
 
 export function isKnownPageId(pageId) {

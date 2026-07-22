@@ -5,6 +5,8 @@ const initialState = {
   overallMapMetric: "Company concentration",
   selectedDependency: null,
   selectedPressure: null,
+  vulnerabilityMetric: "combined",
+  vulnerabilityProfileAggregationLevel: "coarse",
 };
 
 const state = { ...initialState };

@@ -85,3 +85,39 @@ build/
 # dashboard_app/Data/dashboard_filter_index.json
 # dashboard_app/Data/dashboard_hex_runtime.gpkg
 # dashboard_app/Data/dashboard_statistics.json
+# ============================================================
+# Generated dashboard data
+# ============================================================
+
+Data/
+
+# ============================================================
+# Generated GIS outputs
+# ============================================================
+
+CLEAN GIS/
+Loop Layers/
+Layer Loop/
+crossover_hex_layers/
+
+# ============================================================
+# Large GIS datasets
+# ============================================================
+
+Nature Scot SAC/
+Scot Gov Data/
+Scotland Protection Areas/
+SG_CairngormsNationalPark_2010/
+Scotland_boundary/
+scottish_local_authorities/
+businesses/
+codepo_gpkg_gb/
+
+# ============================================================
+# Generated runtime files
+# ============================================================
+
+*.gpkg
+*.qmd
+*.vrt
+*.aux.xml

@@ -19,6 +19,7 @@ CLEAN_GIS_DIR = ROOT / "CLEAN GIS"
 DASHBOARD_MASTER_CSV = DATA_DIR / "dashboard_master.csv"
 DEPENDENCY_INPUT_CSV = DATA_DIR / "company_ecosystem_service_long.csv"
 PRESSURE_INPUT_CSV = DATA_DIR / "company_ecosystem_service_long_pressures.csv"
+COMPANY_PROFILE_CSV = DATA_DIR / "company_integrated_profile.csv"
 SOURCE_GPKG = CLEAN_GIS_DIR / "dashboard_hex_master_complete.gpkg"
 SOURCE_LAYER = "dashboard_hex_master_complete__dashboard_hex_master"
 QGIS_PROJECT = CLEAN_GIS_DIR / "CLEAN GIS.qgz"
@@ -183,6 +184,49 @@ def normalize_pressure_facts(press_df: pd.DataFrame, valid_company_ids: set[str]
     return collapsed[["company_id", "metric_name", "value"]]
 
 
+def normalize_company_vulnerability(profile_df: pd.DataFrame, valid_company_ids: set[str]) -> pd.DataFrame:
+    working = profile_df.copy()
+    working["company_id"] = working["company_id"].apply(normalize_company_id)
+    working = working[(working["company_id"] != "") & (working["company_id"].isin(valid_company_ids))].copy()
+
+    for col in [
+        "functional_vulnerability",
+        "financial_vulnerability",
+        "combined_vulnerability",
+        "functional_consequence_score",
+        "financial_consequence_score",
+        "combined_consequence_score",
+    ]:
+        working[col] = pd.to_numeric(working[col], errors="coerce")
+
+    return working[
+        [
+            "company_id",
+            "functional_vulnerability",
+            "financial_vulnerability",
+            "combined_vulnerability",
+            "functional_consequence_score",
+            "financial_consequence_score",
+            "combined_consequence_score",
+        ]
+    ]
+
+
+def dominant_score_from_counts(low_count: int, moderate_count: int, high_count: int) -> float | None:
+    counts = {
+        1.0: int(low_count),
+        2.0: int(moderate_count),
+        3.0: int(high_count),
+    }
+    max_count = max(counts.values())
+    if max_count <= 0:
+        return None
+
+    # Tie-break toward higher severity for precautionary spatial interpretation.
+    winners = [score for score, count in counts.items() if count == max_count]
+    return max(winners)
+
+
 def field_mapping_for_type(
     renderer_contracts: dict[str, str],
     fact_names: Iterable[str],
@@ -236,6 +280,7 @@ def aggregate_scope(
     press_field_map: dict[str, str],
     dep_company_total: pd.DataFrame,
     press_company_total: pd.DataFrame,
+    vulnerability_company: pd.DataFrame,
 ) -> pd.DataFrame:
     scope_config = {
         "all": {
@@ -276,12 +321,57 @@ def aggregate_scope(
         total_pressure_score=("company_pressure_total", "sum"),
     )
 
+    company_with_vulnerability = company_dim.merge(vulnerability_company, on="company_id", how="left")
+    vulnerability_means = company_with_vulnerability.groupby(group_keys, as_index=False).agg(
+        mean_functional_vulnerability=("functional_vulnerability", "mean"),
+        mean_financial_vulnerability=("financial_vulnerability", "mean"),
+        mean_combined_vulnerability=("combined_vulnerability", "mean"),
+        max_functional_consequence_score=("functional_consequence_score", "max"),
+        max_financial_consequence_score=("financial_consequence_score", "max"),
+        max_combined_consequence_score=("combined_consequence_score", "max"),
+        functional_limited_count=("functional_consequence_score", lambda s: int((s == 1).sum())),
+        functional_moderate_count=("functional_consequence_score", lambda s: int((s == 2).sum())),
+        functional_severe_count=("functional_consequence_score", lambda s: int((s == 3).sum())),
+        financial_limited_count=("financial_consequence_score", lambda s: int((s == 1).sum())),
+        financial_moderate_count=("financial_consequence_score", lambda s: int((s == 2).sum())),
+        financial_severe_count=("financial_consequence_score", lambda s: int((s == 3).sum())),
+        combined_limited_count=("combined_consequence_score", lambda s: int((s == 1).sum())),
+        combined_moderate_count=("combined_consequence_score", lambda s: int((s == 2).sum())),
+        combined_severe_count=("combined_consequence_score", lambda s: int((s == 3).sum())),
+    )
+
+    vulnerability_means["dominant_functional_consequence_score"] = vulnerability_means.apply(
+        lambda row: dominant_score_from_counts(
+            row["functional_limited_count"],
+            row["functional_moderate_count"],
+            row["functional_severe_count"],
+        ),
+        axis=1,
+    )
+    vulnerability_means["dominant_financial_consequence_score"] = vulnerability_means.apply(
+        lambda row: dominant_score_from_counts(
+            row["financial_limited_count"],
+            row["financial_moderate_count"],
+            row["financial_severe_count"],
+        ),
+        axis=1,
+    )
+    vulnerability_means["dominant_combined_consequence_score"] = vulnerability_means.apply(
+        lambda row: dominant_score_from_counts(
+            row["combined_limited_count"],
+            row["combined_moderate_count"],
+            row["combined_severe_count"],
+        ),
+        axis=1,
+    )
+
     dep_means = dep_facts.groupby(group_keys, as_index=False).agg(mean_dep_score=("value", "mean"))
     press_means = press_facts.groupby(group_keys, as_index=False).agg(mean_press_score=("value", "mean"))
 
     result = base.merge(totals, on=group_keys, how="left").merge(dep_means, on=group_keys, how="left").merge(
         press_means, on=group_keys, how="left"
     )
+    result = result.merge(vulnerability_means, on=group_keys, how="left")
 
     for field_name, metric_name in dep_field_map.items():
         metric_df = dep_facts[dep_facts["metric_name"] == metric_name]
@@ -311,6 +401,17 @@ def aggregate_scope(
     ordered_cols += [col for col in result.columns if col not in ordered_cols]
     result = result[ordered_cols]
 
+    nullable_metric_cols = {
+        "mean_functional_vulnerability",
+        "mean_financial_vulnerability",
+        "mean_combined_vulnerability",
+        "max_functional_consequence_score",
+        "max_financial_consequence_score",
+        "max_combined_consequence_score",
+        "dominant_functional_consequence_score",
+        "dominant_financial_consequence_score",
+        "dominant_combined_consequence_score",
+    }
     metric_cols = [
         col
         for col in result.columns
@@ -323,7 +424,11 @@ def aggregate_scope(
         }
     ]
     for col in metric_cols:
-        result[col] = pd.to_numeric(result[col], errors="coerce").fillna(0.0)
+        numeric = pd.to_numeric(result[col], errors="coerce")
+        if col in nullable_metric_cols:
+            result[col] = numeric
+        else:
+            result[col] = numeric.fillna(0.0)
 
     result["company_count"] = result["company_count"].astype(int)
     return result
@@ -378,8 +483,10 @@ def main() -> int:
 
     dep_input = pd.read_csv(DEPENDENCY_INPUT_CSV)
     press_input = pd.read_csv(PRESSURE_INPUT_CSV)
+    profile_input = pd.read_csv(COMPANY_PROFILE_CSV)
     dep_norm = normalize_dependency_facts(dep_input, valid_company_ids)
     press_norm = normalize_pressure_facts(press_input, valid_company_ids)
+    vulnerability_company = normalize_company_vulnerability(profile_input, valid_company_ids)
 
     dep_facts = dep_norm.merge(company_dim, on="company_id", how="inner")
     press_facts = press_norm.merge(company_dim, on="company_id", how="inner")
@@ -416,6 +523,7 @@ def main() -> int:
                 press_field_map,
                 dep_company_total,
                 press_company_total,
+                vulnerability_company,
             )
         )
 
@@ -530,6 +638,24 @@ def main() -> int:
         }
     ]
 
+    vulnerability_fields = [
+        "mean_functional_vulnerability",
+        "mean_financial_vulnerability",
+        "mean_combined_vulnerability",
+        "max_functional_consequence_score",
+        "max_financial_consequence_score",
+        "max_combined_consequence_score",
+        "dominant_functional_consequence_score",
+        "dominant_financial_consequence_score",
+        "dominant_combined_consequence_score",
+    ]
+    vulnerability_field_null_counts = {
+        field: int(summary_df[field].isna().sum()) for field in vulnerability_fields if field in summary_df.columns
+    }
+    vulnerability_field_non_null_counts = {
+        field: int(summary_df[field].notna().sum()) for field in vulnerability_fields if field in summary_df.columns
+    }
+
     summary = {
         "output_file": str(OUTPUT_GPKG),
         "geometry_table": GEOMETRY_LAYER,
@@ -549,6 +675,9 @@ def main() -> int:
         "pressure_field_mapping": press_field_map,
         "unresolved_renderer_fields": unresolved_fields,
         "metric_fields": metric_fields,
+        "vulnerability_fields": vulnerability_fields,
+        "vulnerability_field_null_counts": vulnerability_field_null_counts,
+        "vulnerability_field_non_null_counts": vulnerability_field_non_null_counts,
         "stage2_dependency_total": stage2_dep_total,
         "stage2_pressure_total": stage2_press_total,
         "all_scope_dependency_total": all_dep_total,
