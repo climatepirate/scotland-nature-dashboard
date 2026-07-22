@@ -3,6 +3,7 @@ import { createHeader } from "../layout/header.js";
 import { createEcosystemServicesPage } from "./ecosystemServicesPage.js";
 import { createBusinessVulnerabilityPage } from "./businessVulnerabilityPage.js";
 import { createNatureFinancePage } from "./natureFinancePage.js";
+import { createGlossaryMethodologyPage } from "./glossaryMethodologyPage.js";
 
 export function createDashboardAppShell(overviewPageContent) {
   const shell = document.createElement("div");
@@ -32,6 +33,7 @@ export function createDashboardAppShell(overviewPageContent) {
     createPageWrapper("ecosystem-services", createEcosystemServicesPage()),
     createPageWrapper("pressures", createBusinessVulnerabilityPage()),
     createPageWrapper("vulnerability", createNatureFinancePage()),
+    createPageWrapper("glossary-methodology", createGlossaryMethodologyPage()),
   );
 
   const setPageFromId = (requestedPageId, updateHash = false) => {

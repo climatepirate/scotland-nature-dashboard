@@ -3,6 +3,7 @@ const NAV_ITEMS = [
   { id: "ecosystem-services", label: "Sector Analysis" },
   { id: "pressures", label: "Business Vulnerability" },
   { id: "vulnerability", label: "Nature Finance" },
+  { id: "glossary-methodology", label: "Glossary & Methodology" },
 ];
 
 export function isKnownPageId(pageId) {
