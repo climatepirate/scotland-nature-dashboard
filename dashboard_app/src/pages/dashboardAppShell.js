@@ -2,9 +2,7 @@ import { createTopNavigation, defaultPageId, isKnownPageId } from "../layout/top
 import { createHeader } from "../layout/header.js";
 import { createEcosystemServicesPage } from "./ecosystemServicesPage.js";
 import { createBusinessVulnerabilityPage } from "./businessVulnerabilityPage.js";
-import { createPlaceholderPage } from "./placeholderPage.js";
-
-const PLACEHOLDER_MESSAGE = "Page under development.";
+import { createNatureFinancePage } from "./natureFinancePage.js";
 
 export function createDashboardAppShell(overviewPageContent) {
   const shell = document.createElement("div");
@@ -33,7 +31,7 @@ export function createDashboardAppShell(overviewPageContent) {
     createPageWrapper("overview", overviewPageContent),
     createPageWrapper("ecosystem-services", createEcosystemServicesPage()),
     createPageWrapper("pressures", createBusinessVulnerabilityPage()),
-    createPageWrapper("vulnerability", createPlaceholderPage("Nature Finance", PLACEHOLDER_MESSAGE)),
+    createPageWrapper("vulnerability", createNatureFinancePage()),
   );
 
   const setPageFromId = (requestedPageId, updateHash = false) => {
@@ -60,8 +58,7 @@ export function createDashboardAppShell(overviewPageContent) {
 
   const setPageFromHash = () => {
     const hashPageId = window.location.hash.replace(/^#/, "");
-    const resolvedPageId = hashPageId === "vulnerability" ? "pressures" : hashPageId;
-    setPageFromId(resolvedPageId || defaultPageId());
+    setPageFromId(hashPageId || defaultPageId());
   };
 
   shell.append(sharedHeaderWrap, topNavigation.element, pageContainer);

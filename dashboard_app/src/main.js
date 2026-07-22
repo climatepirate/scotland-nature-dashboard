@@ -13,6 +13,10 @@ import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServ
 import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js";
 import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js";
 import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js";
+import { initNatureFinanceBubbleChart } from "./charts/natureFinanceBubbleChart.js";
+import { initNatureFinanceKpiCards } from "./charts/natureFinanceKpiCards.js";
+import { initNatureFinancePriorityPanel } from "./charts/natureFinancePriorityPanel.js";
+import { initNatureFinancePriorityRankingTable } from "./tables/natureFinancePriorityRankingTable.js";
 
 const appRoot = document.getElementById("app");
 const dashboardShell = renderDashboardShell();
@@ -37,3 +41,7 @@ initEcosystemServicesSummaryRankingTable();
 initBusinessVulnerabilitySummaryCards();
 initBusinessVulnerabilityMap();
 initBusinessVulnerabilityProfileTable();
+initNatureFinanceBubbleChart();
+initNatureFinanceKpiCards();
+initNatureFinancePriorityPanel();
+initNatureFinancePriorityRankingTable();
