@@ -114,10 +114,47 @@ businesses/
 codepo_gpkg_gb/
 
 # ============================================================
-# Generated runtime files
+# Generated dashboard outputs
 # ============================================================
 
-*.gpkg
-*.qmd
-*.vrt
-*.aux.xml
+Data/generated/
+Data/intermediate/
+
+# ============================================================
+# Generated GIS outputs
+# ============================================================
+
+CLEAN GIS/
+Loop Layers/
+Layer Loop/
+crossover_hex_layers/
+
+# ============================================================
+# Large reference datasets
+# ============================================================
+
+Nature Scot SAC/
+Scot Gov Data/
+Scotland Protection Areas/
+SG_CairngormsNationalPark_2010/
+Scotland_boundary/
+scottish_local_authorities/
+businesses/
+codepo_gpkg_gb/
+
+# ============================================================
+# Generated runtime checks
+# ============================================================
+
+runtime_checks/
+
+# ============================================================
+# Standalone generated files
+# ============================================================
+
+Scotland Postcodes.csv
+Scotland Postcodes.gpkg
+Postcodes.gpkg
+postcode_scorepoints_for_gqis.csv
+postcode_scorepoints_for_gqis.gpkg
+postcode_scorepoints_for_gqis.qmd
