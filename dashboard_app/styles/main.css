@@ -808,6 +808,12 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
+.overall-gradient-legend-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .overall-gradient-legend-bar {
   height: 9px;
   border: 1px solid rgba(24, 36, 35, 0.32);

@@ -1,27 +1,20 @@
 import { qgisServerConfig, qgisWmsLayers } from "../config/qgisServer.js";
-import { pressureLegendByLayerName } from "../config/pressureLegendData.js";
 import { bindGlobalFiltersToWmsLayers } from "../filters/globalMapFilter.js";
 import { createScotlandHexOutlineLayer } from "./sharedHexOutlineLayer.js";
 import { updateState } from "../state/state.js";
 
-const allPressureLegendStops = [
-  { label: "2.57 - 3.19", color: "255,242,221,190" },
-  { label: "3.19 - 3.35", color: "235,199,182,190" },
-  { label: "3.35 - 3.49", color: "226,179,165,190" },
-  { label: "3.49 - 3.57", color: "219,163,150,190" },
-  { label: "3.57 - 3.71", color: "213,149,138,190" },
-  { label: "3.71 - 3.81", color: "207,137,128,190" },
-  { label: "3.81 - 3.97", color: "202,126,118,190" },
-  { label: "3.97 - 4.06", color: "198,116,109,190" },
-  { label: "4.06 - 4.20", color: "193,106,100,190" },
-  { label: "4.20 - 4.41", color: "189,97,92,190" },
-  { label: "4.41 - 4.60", color: "185,88,84,190" },
-  { label: "4.60 - 5.09", color: "182,80,77,190" },
-  { label: "5.09 - 5.52", color: "178,72,70,190" },
-  { label: "5.52 - 5.85", color: "175,65,63,190" },
-  { label: "5.85 - 6.38", color: "171,57,56,190" },
-  { label: "6.38 - 7.82", color: "168,50,50,190" },
-];
+function buildLegendGraphicUrl(wmsLayer) {
+  const legendUrl = new URL(qgisServerConfig.baseUrl, window.location.href);
+  legendUrl.searchParams.set("SERVICE", "WMS");
+  legendUrl.searchParams.set("REQUEST", "GetLegendGraphic");
+  legendUrl.searchParams.set("VERSION", "1.3.0");
+  legendUrl.searchParams.set("FORMAT", "image/png");
+  legendUrl.searchParams.set("LAYER", wmsLayer.wmsParams.layers);
+  legendUrl.searchParams.set("STYLE", wmsLayer.wmsParams.styles || "");
+  legendUrl.searchParams.set("MAP", qgisServerConfig.projectPath);
+  legendUrl.searchParams.set("_ts", String(Date.now()));
+  return legendUrl.toString();
+}
 
 function escapeHtml(value) {
   return value
@@ -53,35 +46,6 @@ function formatNumericValue(value) {
     return String(numberValue);
   }
   return numberValue.toFixed(2);
-}
-
-function rgba255ToCss(rgba255) {
-  const [r = 0, g = 0, b = 0, a = 255] = rgba255.split(",").map((value) => Number(value.trim()));
-  return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
-}
-
-function parseRangeLabel(label) {
-  const values = label.match(/-?\d+(?:\.\d+)?/g) || [];
-  if (values.length < 2) {
-    return null;
-  }
-  return {
-    min: Number(values[0]),
-    max: Number(values[1]),
-  };
-}
-
-function formatLegendNumber(value) {
-  if (!Number.isFinite(value)) {
-    return "";
-  }
-  if (Math.abs(value) >= 1000) {
-    return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  }
-  if (Math.abs(value) >= 100) {
-    return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
-  }
-  return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 function buildGetFeatureInfoUrl(map, wmsLayer, latlng, options = {}) {
@@ -158,6 +122,8 @@ function createPressureLayerSelector(selectElement, pressureLayers, initialLabel
 }
 
 export function initEcosystemPressureMap() {
+  const qgisStyleRevision = Date.now();
+
   const container = document.getElementById("ecosystem-pressure-map");
   const pressureSelector = document.getElementById("ecosystem-pressure-service-select");
   if (!container || typeof L === "undefined") {
@@ -176,20 +142,12 @@ export function initEcosystemPressureMap() {
   legendElement.className = "overall-gradient-legend";
   legendElement.innerHTML = `
     <div class="overall-gradient-legend-title"></div>
-    <div class="overall-gradient-legend-bar" aria-hidden="true"></div>
-    <div class="overall-gradient-legend-labels">
-      <span class="overall-gradient-legend-min"></span>
-      <span class="overall-gradient-legend-mid"></span>
-      <span class="overall-gradient-legend-max"></span>
-    </div>
+    <img class="overall-gradient-legend-image" alt="" />
   `;
   container.append(legendElement);
 
   const legendTitle = legendElement.querySelector(".overall-gradient-legend-title");
-  const legendBar = legendElement.querySelector(".overall-gradient-legend-bar");
-  const legendMin = legendElement.querySelector(".overall-gradient-legend-min");
-  const legendMid = legendElement.querySelector(".overall-gradient-legend-mid");
-  const legendMax = legendElement.querySelector(".overall-gradient-legend-max");
+  const legendImage = legendElement.querySelector(".overall-gradient-legend-image");
 
   map.createPane("pressBasemapPane");
   map.getPane("pressBasemapPane").style.zIndex = "200";
@@ -392,42 +350,25 @@ export function initEcosystemPressureMap() {
     }),
   };
 
+  Object.values(pressureLayers).forEach((layer) => {
+    layer.setParams({ _style_rev: qgisStyleRevision });
+  });
+
   const initialLayer = pressureLayers["All ecosystem pressures"];
+
   bindGlobalFiltersToWmsLayers(Object.values(pressureLayers));
   initialLayer.addTo(map);
   let activeLayer = initialLayer;
   let activePressureLabel = "All ecosystem pressures";
   updateState({ selectedPressure: activePressureLabel });
 
-  const updatePressureLegend = (pressureLabel, wmsLayerName) => {
-    const legendConfig = pressureLabel === "All ecosystem pressures"
-      ? allPressureLegendStops
-      : pressureLegendByLayerName[wmsLayerName];
-    if (!legendConfig || !legendConfig.length) {
-      return;
-    }
-
-    const gradientStops = legendConfig.map((stop, index) => {
-      const pct = legendConfig.length <= 1 ? 0 : (index / (legendConfig.length - 1)) * 100;
-      return `${rgba255ToCss(stop.color)} ${pct.toFixed(2)}%`;
-    });
-
-    const firstRange = parseRangeLabel(legendConfig[0].label);
-    const lastRange = parseRangeLabel(legendConfig[legendConfig.length - 1].label);
-    const rangeMin = firstRange?.min;
-    const rangeMax = lastRange?.max;
-    const rangeMid = Number.isFinite(rangeMin) && Number.isFinite(rangeMax)
-      ? (rangeMin + rangeMax) / 2
-      : null;
-
+  const updatePressureLegend = (pressureLabel, layer) => {
     legendTitle.textContent = pressureLabel;
-    legendBar.style.background = `linear-gradient(90deg, ${gradientStops.join(", ")})`;
-    legendMin.textContent = formatLegendNumber(rangeMin);
-    legendMid.textContent = Number.isFinite(rangeMid) ? formatLegendNumber(rangeMid) : "";
-    legendMax.textContent = formatLegendNumber(rangeMax);
+    legendImage.src = buildLegendGraphicUrl(layer);
+    legendImage.alt = pressureLabel + " legend";
   };
 
-  updatePressureLegend(activePressureLabel, activeLayer.wmsParams.layers);
+  updatePressureLegend(activePressureLabel, activeLayer);
 
   const averagePressureFieldByService = {
     "All ecosystem pressures": "mean_press_score",
@@ -509,7 +450,7 @@ export function initEcosystemPressureMap() {
       activeLayer = nextLayer;
       activePressureLabel = selectedLabel;
       updateState({ selectedPressure: activePressureLabel });
-      updatePressureLegend(activePressureLabel, activeLayer.wmsParams.layers);
+      updatePressureLegend(activePressureLabel, activeLayer);
     },
   );
 }
