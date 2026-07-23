@@ -783,6 +783,38 @@ body {
   overflow: hidden;
 }
 
+.overall-context-map-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overall-context-info-shell {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  z-index: 2200;
+}
+
+.overall-context-info-shell .overall-context-info-popover {
+  position: absolute !important;
+  right: calc(100% + 8px) !important;
+  left: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  z-index: 5000 !important;
+  transform: translateY(-50%) !important;
+}
+
+.overall-context-info-shell:hover .overall-context-info-popover,
+.overall-context-info-shell:focus-within .overall-context-info-popover,
+.overall-context-info-popover.is-visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(-50%) !important;
+}
+
 .map-canvas {
   width: 100%;
   min-height: 700px;
@@ -1321,6 +1353,31 @@ body {
   gap: 8px;
 }
 
+.business-vulnerability-title-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.business-vulnerability-title-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.business-vulnerability-title-formula {
+  margin: 0;
+  color: #4f2f34;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px dashed #c9aeb3;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f6ecef 0%, #eedfe3 100%);
+  padding: 8px 10px;
+  line-height: 1.2;
+}
+
 .business-vulnerability-info-popover-shell {
   position: relative;
   z-index: 1200;
@@ -1638,6 +1695,90 @@ body {
   border-bottom: 1px solid #cddbd6;
 }
 
+.business-vulnerability-profile-header-info-shell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.business-vulnerability-profile-header-info-trigger {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid #9bb4ae;
+  background: #f4f9f7;
+  color: #294440;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  cursor: help;
+  text-transform: none;
+}
+
+.business-vulnerability-profile-header-info-trigger:hover,
+.business-vulnerability-profile-header-info-trigger:focus-visible {
+  background: #e8f4f1;
+  border-color: #7b9e95;
+  color: #163834;
+  outline: none;
+}
+
+.business-vulnerability-profile-header-info-tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-100%, -100%);
+  z-index: 10000;
+  min-width: 440px;
+  max-width: 540px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(16, 41, 37, 0.2);
+  background: rgba(21, 36, 33, 0.97);
+  color: #eff7f4;
+  font-weight: 400;
+  box-shadow: 0 10px 26px rgba(17, 34, 30, 0.26);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  text-transform: none;
+}
+
+.business-vulnerability-profile-header-info-tooltip.is-visible {
+  opacity: 1;
+}
+
+.business-vulnerability-profile-header-info-title {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.business-vulnerability-profile-header-info-intro {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.business-vulnerability-profile-header-info-list {
+  margin: 0;
+  padding: 0 0 0 16px;
+  display: grid;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .business-vulnerability-profile-table tbody tr:nth-child(odd) {
   background: #fbfdfc;
 }
@@ -1910,6 +2051,39 @@ body {
   min-height: 132px;
 }
 
+.nature-finance-title-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.nature-finance-title-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.nature-finance-title-formula {
+  margin: 0;
+  color: #4f2f34;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px dashed #c9aeb3;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f6ecef 0%, #eedfe3 100%);
+  padding: 8px 10px;
+  line-height: 1.2;
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  column-gap: 6px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+
+.nature-finance-title-formula-operator {
+  text-align: center;
+}
+
 .nature-finance-kpi-value {
   font-size: clamp(1.4rem, 1.95vw, 1.4rem);
 }
@@ -1930,6 +2104,58 @@ body {
   padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+.nature-finance-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nature-finance-isic-info-trigger {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #9bb4ae;
+  background: #f4f9f7;
+  color: #294440;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  cursor: help;
+}
+
+.nature-finance-isic-info-trigger:hover,
+.nature-finance-isic-info-trigger:focus-visible {
+  background: #e8f4f1;
+  border-color: #7b9e95;
+  color: #163834;
+  outline: none;
+}
+
+.nature-finance-isic-info-tooltip {
+  position: fixed;
+  transform: translate(-100%, -100%);
+  z-index: 10000;
+  pointer-events: none;
+  width: min(90vw, 560px);
+  border: 1px solid rgba(14, 39, 35, 0.22);
+  border-radius: 10px;
+  background: rgba(22, 48, 43, 0.97);
+  color: #eef7f4;
+  box-shadow: 0 10px 26px rgba(12, 30, 27, 0.34);
+  padding: 10px 12px;
+}
+
+.nature-finance-isic-info-text {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 .nature-finance-bubble-chart {
@@ -2037,8 +2263,16 @@ body {
 .nature-finance-size-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 14px 12px;
   align-items: center;
+}
+
+.nature-finance-bubble-legend {
+  margin-top: 14px;
+}
+
+.nature-finance-size-legend {
+  margin-top: 16px;
 }
 
 .nature-finance-bubble-legend-item,
@@ -2131,7 +2365,7 @@ body {
 
 .nature-finance-drivers-head {
   color: #344d49;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -2173,7 +2407,7 @@ body {
   background: transparent;
   color: #23403a;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -2188,15 +2422,85 @@ body {
   outline: none;
 }
 
+.nature-finance-header-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nature-finance-coverage-info-trigger {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid #9bb4ae;
+  background: #f4f9f7;
+  color: #294440;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  cursor: help;
+}
+
+.nature-finance-coverage-info-trigger:hover,
+.nature-finance-coverage-info-trigger:focus-visible {
+  background: #e8f4f1;
+  border-color: #7b9e95;
+  color: #163834;
+  outline: none;
+}
+
+.nature-finance-coverage-info-tooltip {
+  position: fixed;
+  transform: translate(-100%, -100%);
+  z-index: 10000;
+  pointer-events: none;
+  width: min(92vw, 1720px);
+  max-width: 1720px;
+  min-height: 0;
+  height: auto;
+  border: 1px solid rgba(14, 39, 35, 0.22);
+  border-radius: 10px;
+  background: rgba(22, 48, 43, 0.97);
+  color: #eef7f4;
+  box-shadow: 0 10px 26px rgba(12, 30, 27, 0.34);
+  padding: 10px 12px;
+}
+
+.nature-finance-coverage-info-title {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.nature-finance-coverage-info-text {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.nature-finance-coverage-info-list {
+  margin: 0;
+  padding: 0 0 0 16px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
 .nature-finance-table tbody td {
   padding: 12px;
   border-bottom: 1px solid #e0ebe7;
   color: #2b413d;
-  font-size: 0.84rem;
+  font-size: 1rem;
 }
 
 .nature-finance-table-empty {
   color: #58706b;
+  font-size: 1rem;
   text-align: center;
 }
 
@@ -2311,7 +2615,7 @@ body {
 
 .nature-finance-priority-detail-label {
   color: #3f5651;
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -2319,7 +2623,7 @@ body {
 
 .nature-finance-priority-detail-value {
   color: #29413e;
-  font-size: 0.8rem;
+  font-size: 1rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -2364,7 +2668,7 @@ body {
   padding: 2px 9px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.01em;
 }

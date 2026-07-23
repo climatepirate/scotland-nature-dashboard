@@ -130,7 +130,7 @@ function renderChart(root, rows) {
     "aria-label": "Bubble chart of Scottish annual output, normalised vulnerability and employment by ISIC sector",
   });
 
-  const margin = { top: 18, right: 18, bottom: 62, left: 82 };
+  const margin = { top: 34, right: 18, bottom: 62, left: 82 };
   const width = 860;
   const height = 420;
   const plotWidth = width - margin.left - margin.right;
@@ -253,7 +253,9 @@ function renderChart(root, rows) {
     x: 18,
     y: margin.top + (plotHeight / 2),
     transform: `rotate(-90, 18, ${margin.top + (plotHeight / 2)})`,
-    class: "scatter-axis-title",
+    class: "scatter-axis-title scatter-axis-title--y",
+    "text-anchor": "middle",
+    "dominant-baseline": "middle",
   });
   yAxisLabel.textContent = "Normalised nature vulnerability (0-100)";
 
