@@ -17,6 +17,8 @@ import { initNatureFinanceBubbleChart } from "./charts/natureFinanceBubbleChart.
 import { initNatureFinanceKpiCards } from "./charts/natureFinanceKpiCards.js";
 import { initNatureFinancePriorityPanel } from "./charts/natureFinancePriorityPanel.js";
 import { initNatureFinancePriorityRankingTable } from "./tables/natureFinancePriorityRankingTable.js";
+import { initEcosystemServicesDonutChart } from "./charts/ecosystemServicesDonutChart.js";
+import { initEnvironmentalPressuresDonutChart } from "./charts/environmentalPressuresDonutChart.js";
 
 const appRoot = document.getElementById("app");
 const dashboardShell = renderDashboardShell();
@@ -45,3 +47,5 @@ initNatureFinanceBubbleChart();
 initNatureFinanceKpiCards();
 initNatureFinancePriorityPanel();
 initNatureFinancePriorityRankingTable();
+initEcosystemServicesDonutChart();
+initEnvironmentalPressuresDonutChart();

@@ -10,7 +10,7 @@ section.innerHTML = `
     <div class="header-text">
       <h1>Scotland Nature-Risk Dashboard</h1>
       <p class="dashboard-subtitle">
-        Business Interactions with Nature to Support Evidence-Based Policy and Investment
+        Business Interactions with Nature to Support Evidence-Based Policy
       </p>
     </div>
 

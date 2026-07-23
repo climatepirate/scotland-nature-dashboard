@@ -93,7 +93,6 @@ function refreshWmsTiles(layer) {
 
 export function initOverallBusinessMap() {
   const container = document.getElementById("overall-business-map");
-  const businessLayerSelect = document.getElementById("overall-business-layer-select");
   const contextLayerSelect = document.getElementById("overall-context-layer-select");
   if (!container || typeof L === "undefined") {
     return;
@@ -325,13 +324,7 @@ export function initOverallBusinessMap() {
     }
   };
 
-  if (businessLayerSelect) {
-    businessLayerSelect.value = "Company Concentration";
-    setActiveThematicLayer(businessLayerSelect.value);
-    businessLayerSelect.addEventListener("change", (event) => {
-      setActiveThematicLayer(event.target.value);
-    });
-  }
+  setActiveThematicLayer("Company Concentration");
 
   if (contextLayerSelect) {
     contextLayerSelect.value = "None";

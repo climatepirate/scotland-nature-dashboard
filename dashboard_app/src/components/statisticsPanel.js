@@ -9,10 +9,22 @@ function formatCount(value) {
   return new Intl.NumberFormat("en-GB").format(value);
 }
 
-function createMetricCard(label, role, wide = false) {
+function createMetricCard(label, role, wide = false, infoText = "") {
+  const infoMarkup = infoText
+    ? `
+      <span class="statistics-info-popover-shell">
+        <button type="button" class="statistics-info-trigger" aria-label="Show additional information">i</button>
+        <span class="statistics-info-popover" role="tooltip">${infoText}</span>
+      </span>
+    `
+    : "";
+
   return `
     <article class="statistics-metric-card${wide ? " statistics-metric-card--wide" : ""}">
-      <span class="statistics-metric-label">${label}</span>
+      <div class="statistics-metric-title-row">
+        <span class="statistics-metric-label">${label}</span>
+        ${infoMarkup}
+      </div>
       <span class="statistics-metric-value" data-role="${role}">—</span>
     </article>
   `;
@@ -34,24 +46,32 @@ export function createStatisticsPanel() {
   panel.innerHTML = `
     <div class="panel-head">
       <h2 class="panel-title">Statistics</h2>
-      <p class="panel-subtitle">Current summary for the shared location and category filters</p>
     </div>
     <div class="statistics-panel-body">
       <div class="statistics-status" data-role="status">Loading dashboard statistics…</div>
       <div class="statistics-grid">
         ${createMetricCard("Location", "location")}
-        ${createMetricCard("Businesses Included", "businesses")}
-        ${createMetricCard("Moderate–Very High Dependency", "dependency")}
-        ${createMetricCard("Moderate–Very High Pressure", "pressure")}
+        ${createMetricCard(
+          "Businesses Included",
+          "businesses",
+          false,
+          "All businesses included are from Companies House data, there are a number of sole trader and other non-companies-house-registered companies not included in this study."
+        )}
+        ${createMetricCard("Moderate–Very High Dependency on Nature", "dependency")}
+        ${createMetricCard("Moderate–Very High Pressure on Nature", "pressure")}
         ${createMetricCard("Most Depended-on Ecosystem Service", "service", true)}
       </div>
       <div class="statistics-composition-block">
         <div class="statistics-composition-head">
-          <span class="statistics-composition-label">Coarse Category composition</span>
+          <span class="statistics-composition-label">Coarse Category Composition</span>
           <span class="statistics-composition-total" data-role="composition-total">0 businesses</span>
         </div>
         <div class="statistics-bar-track" data-role="bar-track" aria-label="Coarse category composition"></div>
         <div class="statistics-bar-legend" data-role="bar-legend"></div>
+        <div class="statistics-composition-info-shell">
+          <button type="button" class="statistics-info-trigger" aria-label="Show coarse category composition information">i</button>
+          <span class="statistics-info-popover" role="tooltip">Unclassified companies are those that are dormant or do not have a SIC number registered.</span>
+        </div>
       </div>
     </div>
   `;
@@ -82,7 +102,7 @@ export function createStatisticsPanel() {
 
   function renderSnapshot(snapshot) {
     const currentState = getState();
-    statusNode.textContent = `Updated for ${snapshot.locationLabel} and ${currentState.coarseCategory}`;
+    statusNode.textContent = `Updated summary for ${snapshot.locationLabel} and ${currentState.coarseCategory}`;
     locationNode.textContent = snapshot.locationLabel;
     businessesNode.textContent = formatCount(snapshot.businessesIncluded);
     dependencyNode.textContent = formatPercent(snapshot.moderateHighDependencyPercent);

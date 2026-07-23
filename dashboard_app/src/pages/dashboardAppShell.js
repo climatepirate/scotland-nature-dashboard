@@ -29,12 +29,19 @@ export function createDashboardAppShell(overviewPageContent) {
   };
 
   pageContainer.append(
+    createPageWrapper("introduction", createGlossaryMethodologyPage()),
     createPageWrapper("overview", overviewPageContent),
-    createPageWrapper("ecosystem-services", createEcosystemServicesPage()),
-    createPageWrapper("pressures", createBusinessVulnerabilityPage()),
-    createPageWrapper("vulnerability", createNatureFinancePage()),
-    createPageWrapper("glossary-methodology", createGlossaryMethodologyPage()),
+    createPageWrapper("sector-analysis", createEcosystemServicesPage()),
+    createPageWrapper("business-vulnerability", createBusinessVulnerabilityPage()),
+    createPageWrapper("economic-exposure", createNatureFinancePage()),
   );
+
+  const legacyPageIdAlias = {
+    "glossary-methodology": "introduction",
+    "ecosystem-services": "sector-analysis",
+    pressures: "business-vulnerability",
+    vulnerability: "economic-exposure",
+  };
 
   const setPageFromId = (requestedPageId, updateHash = false) => {
     const pageId = isKnownPageId(requestedPageId) ? requestedPageId : defaultPageId();
@@ -60,7 +67,8 @@ export function createDashboardAppShell(overviewPageContent) {
 
   const setPageFromHash = () => {
     const hashPageId = window.location.hash.replace(/^#/, "");
-    setPageFromId(hashPageId || defaultPageId());
+    const resolvedHashPageId = legacyPageIdAlias[hashPageId] || hashPageId;
+    setPageFromId(resolvedHashPageId || defaultPageId());
   };
 
   shell.append(sharedHeaderWrap, topNavigation.element, pageContainer);

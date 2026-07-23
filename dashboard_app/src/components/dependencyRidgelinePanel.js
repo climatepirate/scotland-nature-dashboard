@@ -4,7 +4,7 @@ export function createDependencyRidgelinePanel() {
 
   panel.innerHTML = `
     <div class="panel-head">
-      <h2 class="panel-title">Dependency score distribution by coarse business category</h2>
+      <h2 class="panel-title">Dependency Score Distribution by Coarse Business Category</h2>
       <p class="panel-subtitle" id="dependency-ridgeline-subtitle">Selected ecosystem service: Air filtration</p>
     </div>
     <div class="dependency-ridgeline-body">

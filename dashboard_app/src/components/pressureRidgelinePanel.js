@@ -4,7 +4,7 @@ export function createPressureRidgelinePanel() {
 
   panel.innerHTML = `
     <div class="panel-head">
-      <h2 class="panel-title">Pressure score distribution by coarse business category</h2>
+      <h2 class="panel-title">Pressure Score Distribution by Coarse Business Category</h2>
       <p class="panel-subtitle" id="pressure-ridgeline-subtitle">Selected ecosystem pressure: All ecosystem pressures</p>
     </div>
     <div class="dependency-ridgeline-body">

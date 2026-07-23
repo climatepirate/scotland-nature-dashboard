@@ -205,7 +205,7 @@ function createEcosystemServicesInterpretationPanel() {
   panel.className = "panel ecosystem-services-interpretation-panel";
   panel.innerHTML = `
     <div class="panel-head">
-      <h3 class="panel-title">How to interpret this page</h3>
+      <h3 class="panel-title">How to interpret this page:</h3>
     </div>
     <div class="ecosystem-services-interpretation-body">
       <p>The Sankey diagram shows how businesses are distributed from broad business categories into individual ISIC sectors.</p>

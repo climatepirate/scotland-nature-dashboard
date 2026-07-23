@@ -2,18 +2,43 @@ import { qgisServerConfig, qgisWmsLayers } from "../config/qgisServer.js";
 import { bindGlobalFiltersToWmsLayers } from "../filters/globalMapFilter.js";
 import { createScotlandHexOutlineLayer } from "./sharedHexOutlineLayer.js";
 import { updateState } from "../state/state.js";
+import { pressureLegendByLayerName } from "../config/pressureLegendData.js";
 
-function buildLegendGraphicUrl(wmsLayer) {
-  const legendUrl = new URL(qgisServerConfig.baseUrl, window.location.href);
-  legendUrl.searchParams.set("SERVICE", "WMS");
-  legendUrl.searchParams.set("REQUEST", "GetLegendGraphic");
-  legendUrl.searchParams.set("VERSION", "1.3.0");
-  legendUrl.searchParams.set("FORMAT", "image/png");
-  legendUrl.searchParams.set("LAYER", wmsLayer.wmsParams.layers);
-  legendUrl.searchParams.set("STYLE", wmsLayer.wmsParams.styles || "");
-  legendUrl.searchParams.set("MAP", qgisServerConfig.projectPath);
-  legendUrl.searchParams.set("_ts", String(Date.now()));
-  return legendUrl.toString();
+const allPressureLegendStops = [
+  { label: "4.00 - 5.00", color: "255,242,221,190" },
+  { label: "5.00 - 6.00", color: "224,173,160,190" },
+  { label: "6.00 - 7.00", color: "198,117,109,190" },
+  { label: "7.00 - 8.00", color: "180,76,73,190" },
+  { label: "8.00 - 11.00", color: "168,50,50,190" },
+];
+
+function rgba255ToCss(rgba255) {
+  const [r = 0, g = 0, b = 0, a = 255] = rgba255.split(",").map((value) => Number(value.trim()));
+  return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+}
+
+function parseRangeLabel(label) {
+  const values = label.match(/-?\d+(?:\.\d+)?/g) || [];
+  if (values.length < 2) {
+    return null;
+  }
+  return {
+    min: Number(values[0]),
+    max: Number(values[1]),
+  };
+}
+
+function formatLegendNumber(value) {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+  if (Math.abs(value) >= 1000) {
+    return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+  if (Math.abs(value) >= 100) {
+    return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  }
+  return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 function escapeHtml(value) {
@@ -142,12 +167,20 @@ export function initEcosystemPressureMap() {
   legendElement.className = "overall-gradient-legend";
   legendElement.innerHTML = `
     <div class="overall-gradient-legend-title"></div>
-    <img class="overall-gradient-legend-image" alt="" />
+    <div class="overall-gradient-legend-bar" aria-hidden="true"></div>
+    <div class="overall-gradient-legend-labels">
+      <span class="overall-gradient-legend-min"></span>
+      <span class="overall-gradient-legend-mid"></span>
+      <span class="overall-gradient-legend-max"></span>
+    </div>
   `;
   container.append(legendElement);
 
   const legendTitle = legendElement.querySelector(".overall-gradient-legend-title");
-  const legendImage = legendElement.querySelector(".overall-gradient-legend-image");
+  const legendBar = legendElement.querySelector(".overall-gradient-legend-bar");
+  const legendMin = legendElement.querySelector(".overall-gradient-legend-min");
+  const legendMid = legendElement.querySelector(".overall-gradient-legend-mid");
+  const legendMax = legendElement.querySelector(".overall-gradient-legend-max");
 
   map.createPane("pressBasemapPane");
   map.getPane("pressBasemapPane").style.zIndex = "200";
@@ -363,9 +396,31 @@ export function initEcosystemPressureMap() {
   updateState({ selectedPressure: activePressureLabel });
 
   const updatePressureLegend = (pressureLabel, layer) => {
+    const legendConfig = pressureLabel === "All ecosystem pressures"
+      ? allPressureLegendStops
+      : pressureLegendByLayerName[pressureLabel];
+    if (!legendConfig || !legendConfig.length) {
+      return;
+    }
+
+    const gradientStops = legendConfig.map((stop, index) => {
+      const pct = legendConfig.length <= 1 ? 0 : (index / (legendConfig.length - 1)) * 100;
+      return `${rgba255ToCss(stop.color)} ${pct.toFixed(2)}%`;
+    });
+
+    const firstRange = parseRangeLabel(legendConfig[0].label);
+    const lastRange = parseRangeLabel(legendConfig[legendConfig.length - 1].label);
+    const rangeMin = firstRange?.min;
+    const rangeMax = lastRange?.max;
+    const rangeMid = Number.isFinite(rangeMin) && Number.isFinite(rangeMax)
+      ? (rangeMin + rangeMax) / 2
+      : null;
+
     legendTitle.textContent = pressureLabel;
-    legendImage.src = buildLegendGraphicUrl(layer);
-    legendImage.alt = pressureLabel + " legend";
+    legendBar.style.background = `linear-gradient(90deg, ${gradientStops.join(", ")})`;
+    legendMin.textContent = formatLegendNumber(rangeMin);
+    legendMid.textContent = Number.isFinite(rangeMid) ? formatLegendNumber(rangeMid) : "";
+    legendMax.textContent = formatLegendNumber(rangeMax);
   };
 
   updatePressureLegend(activePressureLabel, activeLayer);

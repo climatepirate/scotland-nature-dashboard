@@ -22,7 +22,7 @@ function createOverviewInterpretationPanel() {
   panel.className = "panel overview-interpretation-panel";
   panel.innerHTML = `
     <div class="panel-head">
-      <h3 class="panel-title">How to interpret this page</h3>
+      <h3 class="panel-title">How to interpret this page:</h3>
     </div>
     <div class="overview-interpretation-body">
       <p>Business statistics summarise the scale and characteristics of the selected business population.</p>

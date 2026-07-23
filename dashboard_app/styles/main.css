@@ -92,6 +92,7 @@ body {
   color: #36504d;
   background: transparent;
   font: inherit;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -714,14 +715,17 @@ body {
   align-content: stretch;
   min-height: 0;
   height: 100%;
+  position: relative;
 }
 
 .top-left-column {
   grid-template-rows: auto 1fr;
+  z-index: 20;
 }
 
 .top-right-column {
   grid-template-rows: 1fr;
+  z-index: 1;
 }
 
 .top-left-column > .statistics-panel {
@@ -936,6 +940,12 @@ body {
   background: #ffffff;
 }
 
+.map-selector-input--static {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
 .map-selector-row {
   margin: 0 12px 12px;
   display: grid;
@@ -1008,7 +1018,9 @@ body {
 }
 
 .statistics-panel {
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1057,6 +1069,13 @@ body {
   align-content: start;
 }
 
+.statistics-metric-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .statistics-metric-card--wide {
   grid-column: 1 / -1;
   min-height: 132px;
@@ -1103,6 +1122,7 @@ body {
   border: 1px solid #dbe4e0;
   border-radius: 10px;
   background: #fbfdfc;
+  position: relative;
   display: grid;
   grid-template-rows: auto auto 1fr;
   gap: 12px;
@@ -1130,12 +1150,77 @@ body {
 }
 
 .statistics-bar-track {
+  margin-top: 30px;
   height: 22px;
   display: flex;
   overflow: hidden;
   border-radius: 999px;
   background: #e7eeea;
   border: 1px solid #d5ded8;
+}
+
+.statistics-info-popover-shell,
+.statistics-composition-info-shell {
+  position: relative;
+  display: inline-flex;
+  z-index: 30;
+}
+
+.statistics-composition-info-shell {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+}
+
+.statistics-info-trigger {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #b7c8c3;
+  background: #f2f8f6;
+  color: #2f4944;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.statistics-info-trigger:hover,
+.statistics-info-trigger:focus-visible {
+  border-color: #7caea2;
+  background: #e5f1ee;
+  outline: none;
+}
+
+.statistics-info-popover {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 1200;
+  width: min(300px, 72vw);
+  border: 1px solid #c7d6d1;
+  border-radius: 10px;
+  background: #f8fcfa;
+  box-shadow: 0 8px 26px rgba(19, 35, 31, 0.2);
+  padding: 8px 10px;
+  color: #2c4540;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.statistics-info-popover-shell:hover .statistics-info-popover,
+.statistics-info-popover-shell:focus-within .statistics-info-popover,
+.statistics-composition-info-shell:hover .statistics-info-popover,
+.statistics-composition-info-shell:focus-within .statistics-info-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .statistics-bar-segment {
@@ -2380,8 +2465,15 @@ body {
 .glossary-section-body p {
   margin: 0;
   color: #344a46;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.glossary-page .glossary-section-body p,
+.glossary-page .glossary-section-body li,
+.glossary-page .glossary-section-body td {
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .glossary-mini-heading {
@@ -2391,6 +2483,32 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+}
+
+.glossary-keyterm-block {
+  display: grid;
+  gap: 8px;
+}
+
+.glossary-keyterm-title {
+  margin: 0;
+  color: #1f3d39;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.glossary-keyterm-subtitle {
+  margin: 0;
+  color: #2b413d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.glossary-keyterm-divider {
+  height: 0;
+  border-top: 1px solid #dbe4e0;
 }
 
 .glossary-definition-method-grid {
@@ -2434,6 +2552,207 @@ body {
   font-size: 0.8rem;
   line-height: 1.25;
   text-align: center;
+}
+
+.glossary-page-guide-list {
+  display: grid;
+  gap: 10px;
+}
+
+.glossary-key-definitions-list {
+  gap: 0;
+}
+
+.glossary-key-definitions-list .glossary-page-guide-row {
+  padding: 10px 0;
+}
+
+.glossary-key-definitions-list .glossary-page-guide-row + .glossary-page-guide-row {
+  border-top: 1px solid #dbe4e0;
+}
+
+.glossary-key-definitions-list--additional {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #dbe4e0;
+}
+
+.glossary-page-guide-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.glossary-page-guide-content {
+  display: grid;
+  gap: 8px;
+}
+
+.glossary-introduction-split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.glossary-introduction-text {
+  display: grid;
+  align-content: start;
+}
+
+.glossary-section-card--introduction .glossary-introduction-text p {
+  font-size: 1.2rem;
+}
+
+.glossary-section-card--introduction .panel-title {
+  font-size: 1.37rem;
+}
+
+.glossary-section-card--introduction {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  column-gap: 14px;
+  align-items: start;
+}
+
+.glossary-section-card--introduction > .glossary-introduction-left {
+  grid-column: 1;
+  display: grid;
+}
+
+.glossary-section-card--introduction .glossary-introduction-left > .panel-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.glossary-section-card--introduction .glossary-introduction-left > .glossary-section-body {
+  padding-top: 22px;
+}
+
+.glossary-section-card--introduction > .glossary-introduction-image-wrap {
+  grid-column: 2;
+  align-self: start;
+  min-height: 220px;
+  margin: 12px 12px 12px 0;
+}
+
+.glossary-introduction-image-wrap {
+  margin: 0;
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 190px;
+}
+
+.glossary-introduction-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.glossary-page-guide-bubble--wide {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glossary-page-guide-bubble {
+  border: 1px solid rgba(18, 102, 93, 0.24);
+  border-radius: 999px;
+  background: #edf6f4;
+  color: #214440;
+  font-size: 0.8 rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 7px 12px;
+  text-align: center;
+}
+
+.glossary-page-guide-row p {
+  margin: 0;
+}
+
+.glossary-ecosystem-services-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 265px;
+  gap: 12px;
+  align-items: start;
+}
+
+.glossary-ecosystem-services-text {
+  display: grid;
+  gap: 8px;
+}
+
+.glossary-ecosystem-services-chart {
+  border: 1px solid #dbe4e0;
+  border-radius: 10px;
+  background: #fbfdfc;
+  padding: 10px;
+}
+
+.glossary-donut-title {
+  margin: 0 0 6px;
+  color: #2a4a44;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.glossary-donut-chart {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: #4f6661;
+  font-size: 0.75rem;
+}
+
+.glossary-donut-wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.glossary-donut-svg {
+  width: 235px;
+  height: 235px;
+}
+
+.glossary-donut-tooltip {
+  position: absolute;
+  z-index: 2;
+  transform: translateY(-100%);
+  pointer-events: none;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(16, 44, 40, 0.22);
+  background: rgba(23, 50, 45, 0.94);
+  color: #f5fbf9;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(12, 31, 27, 0.24);
+}
+
+.glossary-donut-center-title {
+  fill: #49645e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.glossary-donut-center-value {
+  fill: #1e3f3a;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .glossary-equation-box {
@@ -2524,7 +2843,43 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .glossary-page-guide-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .glossary-ecosystem-services-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .glossary-page-guide-bubble {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .glossary-page-guide-bubble--wide {
+    justify-content: flex-start;
+  }
+
   .glossary-table {
     min-width: 560px;
+  }
+
+  .glossary-introduction-split {
+    grid-template-columns: 1fr;
+  }
+
+  .glossary-section-card--introduction {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .glossary-section-card--introduction > .glossary-introduction-left,
+  .glossary-section-card--introduction > .glossary-introduction-image-wrap {
+    grid-column: 1;
+  }
+
+  .glossary-introduction-image-wrap {
+    min-height: 210px;
   }
 }

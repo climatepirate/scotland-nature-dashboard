@@ -12,10 +12,8 @@ export function createOverallBusinessMapPanel() {
     </div>
     <div class="map-selector-row">
       <div class="map-selector-shell">
-        <label class="map-selector-label" for="overall-business-layer-select">Business data layer</label>
-        <select id="overall-business-layer-select" class="map-selector-input" aria-label="Business data layer">
-          <option value="Company Concentration" selected>Company Concentration</option>
-        </select>
+        <label class="map-selector-label">Business data layer</label>
+        <div class="map-selector-input map-selector-input--static" aria-label="Business data layer">Company Concentration</div>
       </div>
       <div class="map-selector-shell">
         <label class="map-selector-label" for="overall-context-layer-select">Context layer</label>

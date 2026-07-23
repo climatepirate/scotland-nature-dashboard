@@ -126,7 +126,7 @@ export function createNatureFinancePage() {
   interpretationPanel.className = "panel nature-finance-interpretation-panel";
   interpretationPanel.innerHTML = `
     <div class="panel-head">
-      <h3 class="panel-title">How to interpret this page</h3>
+      <h3 class="panel-title">How to interpret this page:</h3>
     </div>
     <div class="nature-finance-interpretation-body">
       <p>Economic output describes the scale of activity potentially exposed.</p>

@@ -1,9 +1,9 @@
 const NAV_ITEMS = [
+  { id: "introduction", label: "Introduction" },
   { id: "overview", label: "Overview" },
-  { id: "ecosystem-services", label: "Sector Analysis" },
-  { id: "pressures", label: "Business Vulnerability" },
-  { id: "vulnerability", label: "Economic Exposure" },
-  { id: "glossary-methodology", label: "Glossary & Methodology" },
+  { id: "sector-analysis", label: "Sector Analysis" },
+  { id: "business-vulnerability", label: "Business Vulnerability" },
+  { id: "economic-exposure", label: "Economic Exposure" },
 ];
 
 export function isKnownPageId(pageId) {
