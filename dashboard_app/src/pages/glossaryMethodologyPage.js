@@ -42,7 +42,7 @@ export function createGlossaryMethodologyPage() {
   introductionSection.classList.add("glossary-section-card--introduction");
   introductionSection.insertAdjacentHTML(
     "beforeend",
-    '<figure class="glossary-introduction-image-wrap"><img src="Images/assynt.jpg" alt="Assynt landscape" class="glossary-introduction-image" loading="eager" /></figure>',
+    '<figure class="glossary-introduction-image-wrap" title="Picture credits: Scotland&#39;s Scenery, Kevin Gannon"><img src="Images/assynt.jpg" alt="Assynt landscape" class="glossary-introduction-image" loading="eager" title="Picture credits: Scotland&#39;s Scenery, Kevin Gannon" /></figure>',
   );
   const introductionHead = introductionSection.querySelector(".panel-head");
   const introductionBody = introductionSection.querySelector(".glossary-section-body");

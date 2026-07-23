@@ -362,7 +362,7 @@ body {
 
 .ecosystem-services-summary-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -1688,7 +1688,7 @@ body {
 }
 
 .business-vulnerability-profile-table-shell {
-  max-height: 560px;
+  max-height: none;
   overflow: visible;
   border: 1px solid #d7e3df;
   border-radius: 14px;
@@ -1710,7 +1710,11 @@ body {
 }
 
 .business-vulnerability-profile-col-services {
-  width: 60%;
+  width: 50%;
+}
+
+.business-vulnerability-profile-col-service-count {
+  width: 10%;
 }
 
 .business-vulnerability-profile-table thead th {
@@ -1849,6 +1853,14 @@ body {
   color: #1f3732;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.business-vulnerability-profile-count {
+  font-size: 0.86rem;
+  color: #1f3732;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .business-vulnerability-profile-services {

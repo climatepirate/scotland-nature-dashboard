@@ -140,6 +140,26 @@ function createControlField(labelText, id, options, defaultValue) {
   return { field, select };
 }
 
+function createSearchField(labelText, id, placeholder) {
+  const field = document.createElement("label");
+  field.className = "global-filter-item ecosystem-services-summary-control ecosystem-services-summary-company-search-field";
+  field.setAttribute("for", id);
+
+  const label = document.createElement("span");
+  label.className = "global-filter-label";
+  label.textContent = labelText;
+
+  const input = document.createElement("input");
+  input.id = id;
+  input.className = "global-filter-input ecosystem-services-summary-control-input";
+  input.type = "search";
+  input.placeholder = placeholder;
+  input.autocomplete = "off";
+
+  field.append(label, input);
+  return { field, input };
+}
+
 function getRowModeLabel(mode) {
   return ROW_MODE_OPTIONS.find((option) => option.value === mode)?.label || "Company";
 }
@@ -359,6 +379,22 @@ function sortRows(rows, sortField, sortDirection) {
   });
 }
 
+function normalizeSearchTerm(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function filterCompanyRowsBySearch(rows, searchTerm) {
+  if (!searchTerm) {
+    return rows;
+  }
+
+  return rows.filter((row) => {
+    const label = String(row.label || "").toLowerCase();
+    const secondary = String(row.secondaryLabel || "").toLowerCase();
+    return label.includes(searchTerm) || secondary.includes(searchTerm);
+  });
+}
+
 function renderChipList(items) {
   if (!items.length) {
     return '<span class="ecosystem-services-summary-empty">—</span>';
@@ -502,7 +538,13 @@ export function createEcosystemServicesSummaryRankingTableSection() {
     "combined",
   );
 
-  controls.append(rowsModeControl.field, rankControl.field);
+  const searchControl = createSearchField(
+    "Search company",
+    "ecosystem-services-summary-company-search",
+    "Search companies",
+  );
+
+  controls.append(rowsModeControl.field, rankControl.field, searchControl.field);
 
   const status = document.createElement("p");
   status.id = "ecosystem-services-summary-status";
@@ -536,6 +578,8 @@ export function initEcosystemServicesSummaryRankingTable() {
   const paginationElement = document.getElementById("ecosystem-services-summary-pagination");
   const rowModeSelect = document.getElementById("ecosystem-services-summary-row-mode");
   const rankSelect = document.getElementById("ecosystem-services-summary-rank-by");
+  const companySearchInput = document.getElementById("ecosystem-services-summary-company-search");
+  const companySearchField = companySearchInput?.closest("label");
 
   if (!tableMount || !statusElement || !paginationElement || !rowModeSelect || !rankSelect) {
     return;
@@ -545,7 +589,17 @@ export function initEcosystemServicesSummaryRankingTable() {
   let currentPage = 1;
   let sortField = RANK_FIELD_BY_OPTION[rankSelect.value] || "combinedScore";
   let sortDirection = getDefaultSortDirection(sortField);
+  let companySearchTerm = normalizeSearchTerm(companySearchInput?.value);
   let renderQueued = false;
+
+  const syncCompanySearchVisibility = () => {
+    if (!companySearchField) {
+      return;
+    }
+    companySearchField.hidden = rowModeSelect.value !== "company";
+  };
+
+  syncCompanySearchVisibility();
 
   const setStatus = (text) => {
     statusElement.textContent = text;
@@ -569,7 +623,10 @@ export function initEcosystemServicesSummaryRankingTable() {
           : "coarseCategory";
 
       const aggregatedRows = buildItemCounts(filteredRecords, keyField);
-      const sortedRows = sortRows(aggregatedRows, sortField, sortDirection);
+      const rowsToSort = rowMode === "company"
+        ? filterCompanyRowsBySearch(aggregatedRows, companySearchTerm)
+        : aggregatedRows;
+      const sortedRows = sortRows(rowsToSort, sortField, sortDirection);
       const totalRows = sortedRows.length;
       const totalPages = rowMode === "company" ? Math.max(1, Math.ceil(totalRows / PAGE_SIZE)) : 1;
 
@@ -606,8 +663,17 @@ export function initEcosystemServicesSummaryRankingTable() {
 
   rowModeSelect.addEventListener("change", () => {
     currentPage = 1;
+    syncCompanySearchVisibility();
     queueRender();
   });
+
+  if (companySearchInput) {
+    companySearchInput.addEventListener("input", (event) => {
+      companySearchTerm = normalizeSearchTerm(event.target.value);
+      currentPage = 1;
+      queueRender();
+    });
+  }
 
   rankSelect.addEventListener("change", () => {
     const nextField = RANK_FIELD_BY_OPTION[rankSelect.value] || "combinedScore";
