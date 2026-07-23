@@ -2726,8 +2726,8 @@ body {
 
 .glossary-donut-tooltip {
   position: absolute;
-  z-index: 2;
-  transform: translateY(-100%);
+  z-index: 3000;
+  transform: translate(-100%, -100%);
   pointer-events: none;
   padding: 5px 8px;
   border-radius: 7px;

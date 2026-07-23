@@ -95,7 +95,7 @@ function renderDonut(container, serviceCounts) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    tooltip.style.left = `${x + 14}px`;
+    tooltip.style.left = `${x - 14}px`;
     tooltip.style.top = `${y - 14}px`;
   };
 
