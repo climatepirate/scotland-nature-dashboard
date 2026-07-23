@@ -1,6 +1,6 @@
 import { createMapPanel, createChartPanel } from "../components/panelPlaceholders.js";
 import { createOverallBusinessMapPanel } from "../components/overallBusinessMapPanel.js";
-import { createDependencyMapPanel } from "../components/dependencyMapPanel.js";
+import { createDependencyMapPanel } from "../components/dependencyMapPanel.js?v=2";
 import { createPressureMapPanel } from "../components/pressureMapPanel.js";
 import { createDependencyRidgelinePanel } from "../components/dependencyRidgelinePanel.js";
 import { createPressureRidgelinePanel } from "../components/pressureRidgelinePanel.js";

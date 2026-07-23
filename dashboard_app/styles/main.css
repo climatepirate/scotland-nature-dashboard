@@ -268,6 +268,11 @@ body {
   text-anchor: middle;
 }
 
+.scatter-axis-title--y {
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
 .scatter-quadrant-label {
   fill: #586967;
   font-size: 10px;
@@ -1130,6 +1135,20 @@ body {
   word-break: break-word;
 }
 
+.statistics-metric-value-row {
+  display: grid;
+  gap: 0.28rem;
+  align-content: start;
+}
+
+.statistics-metric-rank {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .statistics-metric-value[data-role="location"] {
   font-size: 1.2rem;
   font-weight: 750;
@@ -1246,6 +1265,14 @@ body {
   transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
 }
 
+.statistics-info-popover--left {
+  left: auto;
+  right: calc(100% + 8px);
+  top: 50%;
+  bottom: auto;
+  transform: translate(-4px, -50%);
+}
+
 .statistics-info-popover-shell:hover .statistics-info-popover,
 .statistics-info-popover-shell:focus-within .statistics-info-popover,
 .statistics-composition-info-shell:hover .statistics-info-popover,
@@ -1253,6 +1280,11 @@ body {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+
+.statistics-info-popover-shell:hover .statistics-info-popover--left,
+.statistics-info-popover-shell:focus-within .statistics-info-popover--left {
+  transform: translate(0, -50%);
 }
 
 .statistics-bar-segment {

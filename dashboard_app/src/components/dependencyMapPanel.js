@@ -4,7 +4,13 @@ export function createDependencyMapPanel() {
 
   panel.innerHTML = `
     <div class="panel-head">
-      <h2 class="panel-title">Ecosystem Dependency Map</h2>
+      <div class="overall-context-map-title-row">
+        <h2 class="panel-title">Ecosystem Dependency Map</h2>
+        <span class="statistics-info-popover-shell overall-context-info-shell">
+          <button type="button" class="statistics-info-trigger" aria-label="Show ecosystem dependency map information">i</button>
+          <span class="statistics-info-popover overall-context-info-popover" role="tooltip">The dependency and pressure maps show mean score per hex so as to not be impacted by varying company concentrations. This allows for visibility of dependency and pressure hotspots.</span>
+        </span>
+      </div>
       <p class="panel-subtitle">Mean Ecosystem Service Dependency from ENCORE Scoring - filter for individual services</p>
     </div>
     <div class="map-panel-shell">

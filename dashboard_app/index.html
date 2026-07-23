@@ -17,8 +17,69 @@
   <div id="app"></div>
   <script>
     if (window.location.protocol === "file:") {
-      const target = `http://127.0.0.1:8000/dashboard_app/index.html${window.location.hash || ""}`;
-      window.location.replace(target);
+      const hash = window.location.hash || "";
+      const candidates = [
+        {
+          pageUrl: `http://localhost:8080/index.html${hash}`,
+          probeUrl: "http://localhost:8080/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://localhost:8080/dashboard_app/index.html${hash}`,
+          probeUrl: "http://localhost:8080/dashboard_app/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://127.0.0.1:8080/index.html${hash}`,
+          probeUrl: "http://127.0.0.1:8080/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://127.0.0.1:8080/dashboard_app/index.html${hash}`,
+          probeUrl: "http://127.0.0.1:8080/dashboard_app/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://localhost/index.html${hash}`,
+          probeUrl: "http://localhost/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://localhost/dashboard_app/index.html${hash}`,
+          probeUrl: "http://localhost/dashboard_app/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://127.0.0.1/index.html${hash}`,
+          probeUrl: "http://127.0.0.1/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://127.0.0.1/dashboard_app/index.html${hash}`,
+          probeUrl: "http://127.0.0.1/dashboard_app/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://localhost:8000/dashboard_app/index.html${hash}`,
+          probeUrl: "http://localhost:8000/dashboard_app/Images/efi-logo-black.png"
+        },
+        {
+          pageUrl: `http://127.0.0.1:8000/dashboard_app/index.html${hash}`,
+          probeUrl: "http://127.0.0.1:8000/dashboard_app/Images/efi-logo-black.png"
+        }
+      ];
+
+      const probeUrl = (url) => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error(`Probe failed: ${url}`));
+        image.src = `${url}?redirect_probe=${Date.now()}`;
+      });
+
+      const tryRedirect = async () => {
+        for (const candidate of candidates) {
+          try {
+            await probeUrl(candidate.probeUrl);
+            window.location.replace(candidate.pageUrl);
+            return;
+          } catch (error) {
+          }
+        }
+      };
+
+      tryRedirect();
     }
   </script>
   <script
@@ -26,6 +87,6 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/main.js?v=5"></script>
 </body>
 </html>

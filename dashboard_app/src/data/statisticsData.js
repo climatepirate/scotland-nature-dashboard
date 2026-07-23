@@ -6,6 +6,126 @@ const ALL_CATEGORIES = "All Categories";
 
 let statisticsIndexPromise = null;
 
+function isNationalAggregate(localAuthorityCode) {
+  return !localAuthorityCode || localAuthorityCode === ALL_SCOTLAND;
+}
+
+function isFinitePositiveNumber(value) {
+  return Number.isFinite(value) && value > 0;
+}
+
+function getRankingMetricCount(bucket, metric) {
+  if (metric === "dependency") {
+    return bucket?.moderate_high_dependency_count;
+  }
+
+  if (metric === "pressure") {
+    return bucket?.moderate_high_pressure_count;
+  }
+
+  throw new Error(`Unknown ranking metric: ${metric}`);
+}
+
+function compareRatioDescending(left, right) {
+  const leftScaled = left.numerator * right.denominator;
+  const rightScaled = right.numerator * left.denominator;
+
+  if (leftScaled === rightScaled) {
+    return 0;
+  }
+
+  return rightScaled - leftScaled;
+}
+
+function haveEqualRatio(left, right) {
+  return left.numerator * right.denominator === right.numerator * left.denominator;
+}
+
+function buildLocalAuthorityMetricSummary({
+  index,
+  metric,
+  selectedLocalAuthority,
+  selectedCoarseCategory,
+  validLocalAuthorityCodes,
+}) {
+  const coarseCategory = selectedCoarseCategory || ALL_CATEGORIES;
+  const rankableEntries = validLocalAuthorityCodes
+    .map((localAuthorityCode) => {
+      const bucket = index?.buckets?.[getBucketKey(localAuthorityCode, coarseCategory)];
+      const denominator = Number(bucket?.company_count);
+      const numerator = Number(getRankingMetricCount(bucket, metric));
+
+      if (!isFinitePositiveNumber(denominator) || !Number.isFinite(numerator)) {
+        return null;
+      }
+
+      return {
+        localAuthorityCode,
+        numerator,
+        denominator,
+        percentage: (numerator / denominator) * 100,
+      };
+    })
+    .filter(Boolean);
+
+  if (!rankableEntries.length) {
+    return null;
+  }
+
+  rankableEntries.sort(compareRatioDescending);
+
+  let currentRank = 0;
+  let previousEntry = null;
+
+  rankableEntries.forEach((entry, indexPosition) => {
+    if (!previousEntry || !haveEqualRatio(entry, previousEntry)) {
+      currentRank = indexPosition + 1;
+    }
+
+    entry.rank = currentRank;
+    previousEntry = entry;
+  });
+
+  const leaderSeed = rankableEntries[0];
+  const leaders = leaderSeed
+    ? rankableEntries
+      .filter((entry) => haveEqualRatio(entry, leaderSeed))
+      .map((entry) => ({
+        localAuthorityCode: entry.localAuthorityCode,
+        localAuthorityLabel: getLocalAuthorityLabel(entry.localAuthorityCode),
+      }))
+      .sort((left, right) => left.localAuthorityLabel.localeCompare(right.localAuthorityLabel, undefined, { sensitivity: "base" }))
+    : [];
+
+  const selectedEntry = isNationalAggregate(selectedLocalAuthority)
+    ? null
+    : rankableEntries.find((entry) => entry.localAuthorityCode === selectedLocalAuthority);
+
+  return {
+    rank: selectedEntry?.rank ?? null,
+    totalAuthorities: rankableEntries.length,
+    percentage: selectedEntry?.percentage ?? null,
+    leaders,
+    topPercentage: leaderSeed?.percentage ?? null,
+  };
+}
+
+export function calculateLocalAuthorityRanking({
+  index,
+  metric,
+  selectedLocalAuthority,
+  selectedCoarseCategory,
+  validLocalAuthorityCodes,
+}) {
+  return buildLocalAuthorityMetricSummary({
+    index,
+    metric,
+    selectedLocalAuthority,
+    selectedCoarseCategory,
+    validLocalAuthorityCodes,
+  });
+}
+
 function getBucketKey(localAuthorityCode, coarseCategory) {
   return `${localAuthorityCode || ALL_SCOTLAND}||${coarseCategory || ALL_CATEGORIES}`;
 }
@@ -31,6 +151,8 @@ function getEmptySnapshot(state) {
     businessesIncluded: 0,
     moderateHighDependencyPercent: 0,
     moderateHighPressurePercent: 0,
+    dependencyRanking: null,
+    pressureRanking: null,
     mostDependedService: "No data",
     mostDependedServiceCount: 0,
     categorySegments,
@@ -50,6 +172,10 @@ export async function getStatisticsSnapshot(state) {
     loadStatisticsIndex(),
     loadGlobalFilterData(),
   ]);
+
+  const validLocalAuthorityCodes = globalFilterData.localAuthorities
+    .map((authority) => authority.code)
+    .filter(Boolean);
 
   const bucket = index.buckets[getBucketKey(state.localAuthorityCode, state.coarseCategory)]
     || index.buckets[getBucketKey(ALL_SCOTLAND, ALL_CATEGORIES)];
@@ -75,11 +201,29 @@ export async function getStatisticsSnapshot(state) {
     };
   });
 
+  const dependencyRanking = calculateLocalAuthorityRanking({
+    index,
+    metric: "dependency",
+    selectedLocalAuthority: state.localAuthorityCode,
+    selectedCoarseCategory: state.coarseCategory,
+    validLocalAuthorityCodes,
+  });
+
+  const pressureRanking = calculateLocalAuthorityRanking({
+    index,
+    metric: "pressure",
+    selectedLocalAuthority: state.localAuthorityCode,
+    selectedCoarseCategory: state.coarseCategory,
+    validLocalAuthorityCodes,
+  });
+
   return {
     locationLabel: getLocalAuthorityLabel(state.localAuthorityCode),
     businessesIncluded,
     moderateHighDependencyPercent: businessesIncluded > 0 ? (moderateHighDependencyCount / businessesIncluded) * 100 : 0,
     moderateHighPressurePercent: businessesIncluded > 0 ? (moderateHighPressureCount / businessesIncluded) * 100 : 0,
+    dependencyRanking,
+    pressureRanking,
     mostDependedService: topService,
     mostDependedServiceCount: topServiceCount,
     categorySegments,

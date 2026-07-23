@@ -447,6 +447,7 @@ function drawChart(canvas, rows) {
   context.save();
   context.translate(18, margin.top + (plotHeight / 2));
   context.rotate(-Math.PI / 2);
+  context.textBaseline = "middle";
   context.fillText("Pressure score", 0, 0);
   context.restore();
 

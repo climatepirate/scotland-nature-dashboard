@@ -202,7 +202,7 @@ export function createGlossaryMethodologyPage() {
             <h5 class="glossary-keyterm-subtitle">Dashboard calculation</h5>
             <section class="glossary-equation-box" aria-label="Economic Exposure Index equation">
               <div class="glossary-equation-lines">
-                <p>Economis Exposure = (0.5 x Normalised Nature Vulnerability) + (0.5 x Normalised Annual Output)</p>
+                <p>Economic Exposure = (0.5 x Normalised Nature Vulnerability) + (0.5 x Normalised Annual Output)</p>
               </div>
             </section>
             <p>The calculation does not estimate an expected financial loss. Instead, it identifies where economically significant sectors also show relatively high nature-related vulnerability, helping prioritise areas for further investigation, policy engagement or more detailed assessment.</p>

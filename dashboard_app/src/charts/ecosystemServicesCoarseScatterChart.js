@@ -268,16 +268,15 @@ function buildScatterSvg(points, width, height) {
     const labelClass = primaryLabel ? "scatter-label scatter-label--left" : "scatter-label";
     return `
       <g>
-        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${radius.toFixed(2)}" fill="${color}" class="scatter-point"></circle>
+        <circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${radius.toFixed(2)}" fill="${color}" class="scatter-point coarse-scatter-point" data-n="${point.n}" data-dep="${formatNumber(point.medianDep)}" data-press="${formatNumber(point.medianPress)}"></circle>
         <text x="${labelX.toFixed(2)}" y="${(y - 2).toFixed(2)}" class="${labelClass}">${point.category}</text>
-        <title>${point.category}: n=${point.n}, median dependency=${formatNumber(point.medianDep)}, median pressure=${formatNumber(point.medianPress)}</title>
       </g>
     `;
   }).join("");
 
   const axisLabels = `
     <text x="${margin.left + (plotWidth / 2)}" y="${height - 14}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
-    <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title">Median pressure score</text>
+    <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title scatter-axis-title--y">Median pressure score</text>
   `;
 
   return `
@@ -299,9 +298,40 @@ export function initEcosystemServicesCoarseScatterChart() {
 
   let rows = [];
   let renderQueued = false;
+  let tooltipEl = null;
 
   const setStatus = (text) => {
     statusElement.textContent = text;
+  };
+
+  const hideTooltip = () => {
+    if (tooltipEl) {
+      tooltipEl.style.display = "none";
+    }
+  };
+
+  const ensureTooltip = () => {
+    if (tooltipEl) {
+      return tooltipEl;
+    }
+
+    tooltipEl = document.createElement("div");
+    tooltipEl.style.position = "fixed";
+    tooltipEl.style.zIndex = "1500";
+    tooltipEl.style.pointerEvents = "none";
+    tooltipEl.style.display = "none";
+    tooltipEl.style.minWidth = "220px";
+    tooltipEl.style.maxWidth = "320px";
+    tooltipEl.style.padding = "8px 10px";
+    tooltipEl.style.border = "1px solid rgba(27, 44, 42, 0.24)";
+    tooltipEl.style.borderRadius = "8px";
+    tooltipEl.style.background = "rgba(255, 255, 255, 0.96)";
+    tooltipEl.style.boxShadow = "0 4px 14px rgba(0, 0, 0, 0.16)";
+    tooltipEl.style.color = "#1f2b2a";
+    tooltipEl.style.fontSize = "0.78rem";
+    tooltipEl.style.lineHeight = "1.35";
+    document.body.append(tooltipEl);
+    return tooltipEl;
   };
 
   const queueRender = () => {
@@ -338,6 +368,28 @@ export function initEcosystemServicesCoarseScatterChart() {
 
   window.addEventListener("resize", () => {
     queueRender();
+  });
+
+  chartRoot.addEventListener("pointermove", (event) => {
+    const target = event.target instanceof Element ? event.target.closest(".coarse-scatter-point") : null;
+    if (!target) {
+      hideTooltip();
+      return;
+    }
+
+    const tooltip = ensureTooltip();
+    const n = target.getAttribute("data-n") || "";
+    const dep = target.getAttribute("data-dep") || "";
+    const press = target.getAttribute("data-press") || "";
+
+    tooltip.innerHTML = `<div><strong>n: ${n}</strong></div><div>dep: ${dep} | press: ${press}</div>`;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${event.clientX + 14}px`;
+    tooltip.style.top = `${event.clientY + 14}px`;
+  });
+
+  chartRoot.addEventListener("pointerleave", () => {
+    hideTooltip();
   });
 
   Promise.all([

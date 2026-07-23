@@ -35,7 +35,7 @@ function createSankeySection() {
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
-  subheading.textContent = "Business counts flowing from coarse category to ISIC section under active filters.";
+  subheading.textContent = "Business counts flowing from coarse category to ISIC sector under active filters.";
 
   const body = document.createElement("div");
   body.className = "ecosystem-services-slot ecosystem-services-slot--sankey";
@@ -227,7 +227,7 @@ export function createEcosystemServicesPage() {
   titleCard.innerHTML = `
     <div class="panel-head">
       <h2 class="panel-title">Sector Analysis</h2>
-      <p class="panel-subtitle"> Introducing ISIC Sections and a detailed analysis of individual ecosystem dependencies and pressures.</p>
+      <p class="panel-subtitle"> Introducing ISIC Sector/Sections and a detailed analysis of individual ecosystem dependencies and pressures.</p>
     </div>
   `;
 
@@ -238,7 +238,7 @@ export function createEcosystemServicesPage() {
   filterGrid.className = "ecosystem-services-filter-grid";
   filterGrid.append(
     createFilterField("Coarse Category", "ecosystem-services-coarse-category", "All Categories"),
-    createFilterField("ISIC Section", "ecosystem-services-isic-section", "All ISIC Sections"),
+    createFilterField("ISIC Section", "ecosystem-services-isic-section", "All ISIC Sectors"),
     createFilterField("Local Authority", "ecosystem-services-local-authority", "All Scotland"),
   );
 

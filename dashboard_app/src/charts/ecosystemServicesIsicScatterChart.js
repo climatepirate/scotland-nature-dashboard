@@ -299,7 +299,7 @@ function buildSvg(points, width, height) {
 
   const axisLabels = `
     <text x="${margin.left + (plotWidth / 2)}" y="${height - 14}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
-    <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title">Median pressure score</text>
+    <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title scatter-axis-title--y">Median pressure score</text>
   `;
 
   return `

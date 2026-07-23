@@ -10,6 +10,7 @@ services:
       HOME: "/var/lib/qgis"
       QGIS_SERVER_LOG_LEVEL: "0"
       QGIS_SERVER_PARALLEL_RENDERING: "true"
+      QGIS_PROJECT_FILE: "/io/workspace/CLEAN GIS/CLEAN GIS.qgz"
     command:
       - /bin/bash
       - -lc
@@ -28,15 +29,14 @@ services:
         add_header Access-Control-Allow-Headers "Origin,Content-Type,Accept" always;
         EOF
 
-        if [ -f /io/workspace/dashboard_app/index.html ]; then
-          rm -rf /usr/share/nginx/html/*
-          cp -R /io/workspace/dashboard_app/. /usr/share/nginx/html/
-          if [ -d /io/workspace/Data ]; then
-            rm -rf /usr/share/nginx/html/Data
-            cp -R /io/workspace/Data /usr/share/nginx/html/Data
-          fi
-        fi
+        cat >/etc/nginx/qgis.d/20-dashboard-app-prefix.conf <<'EOF'
+        location /dashboard_app/ {
+          rewrite ^/dashboard_app/(.*)$ /$1 break;
+        }
+        EOF
 
         exec /usr/local/bin/start-xvfb-nginx.sh
     volumes:
       - ./:/io/workspace:ro
+      - ./dashboard_app:/usr/share/nginx/html:ro
+      - ./Data:/usr/share/nginx/html/Data:ro

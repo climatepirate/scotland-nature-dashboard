@@ -368,18 +368,18 @@ function buildSankeySvg(model, width, height) {
         `${rightX - pathCurvature} ${link.y1},`,
         `${rightX} ${link.y1}`,
       ].join(" ");
+      const tooltip = escapeHtml(`${link.coarseCategory} → ${link.isicSection}: ${formatCount(link.count)} businesses`);
 
-      return `<path d="${d}" fill="none" stroke="${link.color}" stroke-width="${link.thickness.toFixed(2)}" stroke-linecap="butt"><title>${escapeHtml(link.coarseCategory)} → ${escapeHtml(link.isicSection)}: ${formatCount(link.count)} businesses</title></path>`;
+      return `<path d="${d}" fill="none" stroke="${link.color}" stroke-width="${link.thickness.toFixed(2)}" stroke-linecap="butt" class="sankey-interactive" data-sankey-tooltip="${tooltip}"></path>`;
     })
     .join("");
 
   const leftNodeMarkup = leftNodes
     .map((node) => {
       const color = getCoarseColor(node.name);
+      const tooltip = escapeHtml(`${node.name}: ${formatCount(node.count)} businesses`);
       return `
-        <rect x="${leftX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
-          <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
-        </rect>
+        <rect x="${leftX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}" class="sankey-interactive" data-sankey-tooltip="${tooltip}"></rect>
         <text x="${leftX - 12}" y="${(leftLabelY.get(node.name) || node.centerY).toFixed(2)}" class="sankey-node-label sankey-node-label--left">${escapeHtml(toIsicDisplayLabel(node.name))}</text>
       `;
     })
@@ -392,11 +392,10 @@ function buildSankeySvg(model, width, height) {
         ? getCoarseColor([...coarseSet][0])
         : "#9aa0a8";
       const rightCenterY = node.centerY;
+      const tooltip = escapeHtml(`${node.name}: ${formatCount(node.count)} businesses`);
 
       return `
-        <rect x="${rightX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}">
-          <title>${escapeHtml(node.name)}: ${formatCount(node.count)} businesses</title>
-        </rect>
+        <rect x="${rightX}" y="${node.y.toFixed(2)}" width="${nodeWidth}" height="${node.h.toFixed(2)}" rx="2" fill="${color}" class="sankey-interactive" data-sankey-tooltip="${tooltip}"></rect>
         <text x="${rightX + nodeWidth + 12}" y="${rightCenterY.toFixed(2)}" class="sankey-node-label sankey-node-label--right">${escapeHtml(toIsicDisplayLabel(node.name))}</text>
       `;
     })
@@ -437,9 +436,30 @@ export function initEcosystemServicesSankeyChart() {
 
   let sourceRows = [];
   let renderQueued = false;
+  let tooltipEl = null;
 
   const setStatus = (message) => {
     statusElement.textContent = message;
+  };
+
+  const hideTooltip = () => {
+    if (tooltipEl) {
+      tooltipEl.style.display = "none";
+    }
+  };
+
+  const ensureTooltip = () => {
+    if (tooltipEl) {
+      return tooltipEl;
+    }
+
+    tooltipEl = document.createElement("div");
+    tooltipEl.className = "ecosystem-services-company-scatter-tooltip";
+    tooltipEl.style.position = "fixed";
+    tooltipEl.style.zIndex = "1500";
+    tooltipEl.style.display = "none";
+    document.body.append(tooltipEl);
+    return tooltipEl;
   };
 
   const queueRender = () => {
@@ -534,6 +554,30 @@ export function initEcosystemServicesSankeyChart() {
 
   window.addEventListener("resize", () => {
     queueRender();
+  });
+
+  chartRoot.addEventListener("pointermove", (event) => {
+    const target = event.target instanceof Element ? event.target.closest(".sankey-interactive") : null;
+    if (!target) {
+      hideTooltip();
+      return;
+    }
+
+    const tooltipText = target.getAttribute("data-sankey-tooltip");
+    if (!tooltipText) {
+      hideTooltip();
+      return;
+    }
+
+    const tooltip = ensureTooltip();
+    tooltip.innerHTML = `<div>${tooltipText}</div>`;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${event.clientX + 14}px`;
+    tooltip.style.top = `${event.clientY + 14}px`;
+  });
+
+  chartRoot.addEventListener("pointerleave", () => {
+    hideTooltip();
   });
 
   Promise.all([

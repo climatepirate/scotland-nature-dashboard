@@ -9,15 +9,64 @@ function formatCount(value) {
   return new Intl.NumberFormat("en-GB").format(value);
 }
 
-function createMetricCard(label, role, wide = false, infoText = "") {
+function formatOrdinal(value) {
+  const absoluteValue = Math.abs(Number(value));
+  const remainder100 = absoluteValue % 100;
+
+  if (remainder100 >= 11 && remainder100 <= 13) {
+    return `${value}th`;
+  }
+
+  switch (absoluteValue % 10) {
+    case 1:
+      return `${value}st`;
+    case 2:
+      return `${value}nd`;
+    case 3:
+      return `${value}rd`;
+    default:
+      return `${value}th`;
+  }
+}
+
+export function formatAuthorityLeaders(authorityNames) {
+  if (!Array.isArray(authorityNames) || authorityNames.length === 0) {
+    return "";
+  }
+
+  if (authorityNames.length === 1) {
+    return authorityNames[0];
+  }
+
+  if (authorityNames.length === 2) {
+    return `${authorityNames[0]} and ${authorityNames[1]}`;
+  }
+
+  if (authorityNames.length === 3) {
+    return `${authorityNames[0]}, ${authorityNames[1]} and ${authorityNames[2]}`;
+  }
+
+  return `${authorityNames[0]}, ${authorityNames[1]} and ${authorityNames.length - 2} others`;
+}
+
+function createMetricCard(label, role, wide = false, infoText = "", infoPopoverClass = "", withRank = false) {
   const infoMarkup = infoText
     ? `
       <span class="statistics-info-popover-shell">
         <button type="button" class="statistics-info-trigger" aria-label="Show additional information">i</button>
-        <span class="statistics-info-popover" role="tooltip">${infoText}</span>
+        <span class="statistics-info-popover${infoPopoverClass ? ` ${infoPopoverClass}` : ""}" role="tooltip">${infoText}</span>
       </span>
     `
     : "";
+
+  const valueMarkup = withRank
+    ? `
+      <div class="statistics-metric-value-row">
+        <span class="statistics-metric-value" data-role="${role}">—</span>
+        <span class="statistics-metric-rank" data-role="${role}-rank" hidden></span>
+      </div>
+    `
+    : `<span class="statistics-metric-value" data-role="${role}">—</span>`;
 
   return `
     <article class="statistics-metric-card${wide ? " statistics-metric-card--wide" : ""}">
@@ -25,9 +74,90 @@ function createMetricCard(label, role, wide = false, infoText = "") {
         <span class="statistics-metric-label">${label}</span>
         ${infoMarkup}
       </div>
-      <span class="statistics-metric-value" data-role="${role}">—</span>
+      ${valueMarkup}
     </article>
   `;
+}
+
+function renderMetricContext(node, context) {
+  if (!node) {
+    return;
+  }
+
+  node.hidden = true;
+  node.textContent = "";
+  node.removeAttribute("aria-label");
+  node.removeAttribute("title");
+
+  if (!context) {
+    return;
+  }
+
+  if (context.mode === "rank") {
+    const { ranking, label } = context;
+    if (!ranking || !Number.isFinite(ranking.rank) || !Number.isFinite(ranking.totalAuthorities) || ranking.totalAuthorities <= 0) {
+      return;
+    }
+
+    const rankText = `${formatOrdinal(ranking.rank)} of ${formatCount(ranking.totalAuthorities)} local authorities`;
+    node.hidden = false;
+    node.textContent = rankText;
+    node.setAttribute("aria-label", `${label} rank: ${rankText}`);
+    node.setAttribute("title", rankText);
+    return;
+  }
+
+  if (context.mode === "leader") {
+    const { label, description, leaders } = context;
+    const authorityNames = Array.isArray(leaders)
+      ? leaders.map((leader) => leader.localAuthorityLabel).filter(Boolean)
+      : [];
+    const leaderText = formatAuthorityLeaders(authorityNames);
+
+    if (!leaderText) {
+      return;
+    }
+
+    const visibleText = `${label}: ${leaderText}`;
+    node.hidden = false;
+    node.textContent = visibleText;
+    node.setAttribute("aria-label", `${description}: ${leaderText}.`);
+    node.setAttribute("title", visibleText);
+    return;
+  }
+
+  if (context.mode === "hidden") {
+    node.hidden = true;
+    return;
+  }
+}
+
+function buildMetricContext(metric, currentState, ranking) {
+  const isAllScotland = !currentState.localAuthorityCode || currentState.localAuthorityCode === "All Scotland";
+
+  if (isAllScotland) {
+    if (metric === "dependency") {
+      return {
+        mode: "leader",
+        label: "Most dependent (share of companies)",
+        description: "Local authority with the highest proportion of businesses with Moderate to Very High nature dependency",
+        leaders: ranking?.leaders || [],
+      };
+    }
+
+    return {
+      mode: "leader",
+      label: "Highest pressure (share of companies)",
+      description: "Local authority with the highest proportion of businesses with Moderate to Very High pressure on nature",
+      leaders: ranking?.leaders || [],
+    };
+  }
+
+  return {
+    mode: "rank",
+    label: metric === "dependency" ? "Dependency" : "Pressure",
+    ranking,
+  };
 }
 
 function buildBarLegendItem(segment, color) {
@@ -55,10 +185,11 @@ export function createStatisticsPanel() {
           "Businesses Included",
           "businesses",
           false,
-          "All businesses included are from Companies House data, there are a number of sole trader and other non-companies-house-registered companies not included in this study."
+          "All businesses included are from Companies House data, there are a number of sole trader and other non-companies-house-registered companies not included in this study.",
+          "statistics-info-popover--left"
         )}
-        ${createMetricCard("Moderate–Very High Dependency on Nature", "dependency")}
-        ${createMetricCard("Moderate–Very High Pressure on Nature", "pressure")}
+        ${createMetricCard("Moderate–Very High Dependency on Nature", "dependency", false, "", "", true)}
+        ${createMetricCard("Moderate–Very High Pressure on Nature", "pressure", false, "", "", true)}
         ${createMetricCard("Most Depended-on Ecosystem Service", "service", true)}
       </div>
       <div class="statistics-composition-block">
@@ -80,7 +211,9 @@ export function createStatisticsPanel() {
   const locationNode = panel.querySelector('[data-role="location"]');
   const businessesNode = panel.querySelector('[data-role="businesses"]');
   const dependencyNode = panel.querySelector('[data-role="dependency"]');
+  const dependencyContextNode = panel.querySelector('[data-role="dependency-rank"]');
   const pressureNode = panel.querySelector('[data-role="pressure"]');
+  const pressureContextNode = panel.querySelector('[data-role="pressure-rank"]');
   const serviceNode = panel.querySelector('[data-role="service"]');
   const compositionTotalNode = panel.querySelector('[data-role="composition-total"]');
   const barTrackNode = panel.querySelector('[data-role="bar-track"]');
@@ -106,7 +239,9 @@ export function createStatisticsPanel() {
     locationNode.textContent = snapshot.locationLabel;
     businessesNode.textContent = formatCount(snapshot.businessesIncluded);
     dependencyNode.textContent = formatPercent(snapshot.moderateHighDependencyPercent);
+    renderMetricContext(dependencyContextNode, buildMetricContext("dependency", currentState, snapshot.dependencyRanking));
     pressureNode.textContent = formatPercent(snapshot.moderateHighPressurePercent);
+    renderMetricContext(pressureContextNode, buildMetricContext("pressure", currentState, snapshot.pressureRanking));
     serviceNode.textContent = snapshot.mostDependedService;
     compositionTotalNode.textContent = `${formatCount(snapshot.businessesIncluded)} businesses`;
 
@@ -141,7 +276,9 @@ export function createStatisticsPanel() {
       locationNode.textContent = "—";
       businessesNode.textContent = "—";
       dependencyNode.textContent = "—";
+      renderMetricContext(dependencyContextNode, { mode: "hidden" });
       pressureNode.textContent = "—";
+      renderMetricContext(pressureContextNode, { mode: "hidden" });
       serviceNode.textContent = "—";
       compositionTotalNode.textContent = "0 businesses";
       barTrackNode.innerHTML = '<div class="statistics-bar-segment statistics-bar-segment--empty"></div>';

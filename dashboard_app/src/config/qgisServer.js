@@ -1,5 +1,5 @@
 export const qgisServerConfig = {
-  baseUrl: "http://localhost:8080/ows/",
+  baseUrl: new URL("/ows/", window.location.origin).toString(),
   projectPath: "/io/workspace/CLEAN GIS/CLEAN GIS.qgz",
 };
 
