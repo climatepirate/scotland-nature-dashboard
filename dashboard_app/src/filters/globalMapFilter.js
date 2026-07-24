@@ -45,23 +45,6 @@ function buildHexFilterExpression(state) {
   return expression;
 }
 
-function applyFilterToWmsLayer(wmsLayer, expression) {
-  if (!wmsLayer || typeof wmsLayer.setParams !== "function") {
-    return;
-  }
-
-  const layerName =
-    (typeof wmsLayer.wmsParams?.layers === "string" && wmsLayer.wmsParams.layers) ||
-    (typeof wmsLayer.options?.layers === "string" && wmsLayer.options.layers) ||
-    "";
-
-  const scopedExpression = expression && layerName ? `${layerName}:${expression}` : expression;
-
-  wmsLayer.setParams({
-    FILTER: scopedExpression,
-  });
-}
-
 export function buildHexFilterExpressionForState(state) {
   return buildHexFilterExpression(state);
 }
@@ -77,29 +60,3 @@ export function emitGlobalFilterChange(state = getState()) {
   return filterExpression;
 }
 
-export function bindGlobalFiltersToWmsLayers(wmsLayers) {
-  const layers = Array.isArray(wmsLayers) ? wmsLayers.filter(Boolean) : [];
-
-  const applyExpression = (expression) => {
-    layers.forEach((layer) => {
-      applyFilterToWmsLayer(layer, expression);
-    });
-  };
-
-  applyExpression(buildHexFilterExpression(getState()));
-
-  loadGlobalFilterData()
-    .then(() => {
-      applyExpression(buildHexFilterExpression(getState()));
-    })
-    .catch((error) => {
-      console.error("Global filter index unavailable:", error);
-    });
-
-  const registry = getGlobalFilterHandlerRegistry();
-  registry?.add(applyExpression);
-
-  return () => {
-    registry?.delete(applyExpression);
-  };
-}

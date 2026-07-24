@@ -1,5 +1,4 @@
 import { dependencyLegendByLayerName } from "../config/dependencyLegendData.js";
-import { qgisWmsLayers } from "../config/qgisServer.js";
 import { initDependencyRidgelineChart } from "../charts/dependencyRidgelineChart.js";
 import { getState, subscribe, updateState } from "../state/state.js";
 import {
@@ -47,32 +46,32 @@ const DEPENDENCY_LEGEND_STOPS = [
 ];
 
 const DEPENDENCY_OPTIONS = [
-  { label: "All ecosystem dependencies", field: "mean_dep_score", legendLayerName: qgisWmsLayers.totalDependency },
-  { label: "Air filtration", field: "avg_dep_air_filtration", legendLayerName: qgisWmsLayers.depAirFiltration },
-  { label: "Biological control", field: "avg_dep_biological_control", legendLayerName: qgisWmsLayers.depBiologicalControl },
-  { label: "Biomass provisioning", field: "avg_dep_biomass_provisioning", legendLayerName: qgisWmsLayers.depBiomassProvisioning },
-  { label: "Education, scientific and research services", field: "avg_dep_education_scientific_and_research_services", legendLayerName: qgisWmsLayers.depEducationScientificResearchServices },
-  { label: "Flood control", field: "avg_dep_flood_control", legendLayerName: qgisWmsLayers.depFloodControl },
-  { label: "Genetic material", field: "avg_dep_genetic_material", legendLayerName: qgisWmsLayers.depGeneticMaterial },
-  { label: "Global climate regulation", field: "avg_dep_global_climate_regulation", legendLayerName: qgisWmsLayers.depGlobalClimateRegulation },
-  { label: "Local climate regulation", field: "avg_dep_local_micro_and_meso_climate_regulation", legendLayerName: qgisWmsLayers.depLocalClimateRegulation },
-  { label: "Noise attenuation", field: "avg_dep_noise_attenuation", legendLayerName: qgisWmsLayers.depNoiseAttenuation },
-  { label: "Nursery population and habitat maintenance", field: "avg_dep_nursery_population_and_habitat_maintenance", legendLayerName: qgisWmsLayers.depNurseryHabitatMaintenance },
-  { label: "Animal-based energy", field: "avg_dep_other_provisioning_services_animal_based_energy", legendLayerName: qgisWmsLayers.depAnimalBasedEnergy },
-  { label: "Dilution by atmosphere and ecosystems", field: "avg_dep_other_regulating_and_maintenance_service_dilution_by_atmosphere_and_ecosystems", legendLayerName: qgisWmsLayers.depDilutionAtmosphereEcosystems },
-  { label: "Mediation of sensory impacts", field: "avg_dep_other_regulating_and_maintenance_service_mediation_of_sensory_impacts_other_than_noise", legendLayerName: qgisWmsLayers.depMediationSensoryImpacts },
-  { label: "Pollination", field: "avg_dep_pollination", legendLayerName: qgisWmsLayers.depPollination },
-  { label: "Rainfall pattern regulation", field: "avg_dep_rainfall_pattern_regulation", legendLayerName: qgisWmsLayers.depRainfallPatternRegulation },
-  { label: "Recreation-related services", field: "avg_dep_recreation_related_services", legendLayerName: qgisWmsLayers.depRecreationRelatedServices },
-  { label: "Soil and sediment retention", field: "avg_dep_soil_and_sediment_retention", legendLayerName: qgisWmsLayers.depSoilSedimentRetention },
-  { label: "Soil quality regulation", field: "avg_dep_soil_quality_regulation", legendLayerName: qgisWmsLayers.depSoilQualityRegulation },
-  { label: "Solid-waste remediation", field: "avg_dep_solid_waste_remediation", legendLayerName: qgisWmsLayers.depSolidWasteRemediation },
-  { label: "Spiritual, artistic and symbolic services", field: "avg_dep_spiritual_artistic_and_symbolic_services", legendLayerName: qgisWmsLayers.depSpiritualArtisticSymbolicServices },
-  { label: "Storm mitigation", field: "avg_dep_storm_mitigation", legendLayerName: qgisWmsLayers.depStormMitigation },
-  { label: "Visual amenity services", field: "avg_dep_visual_amenity_services", legendLayerName: qgisWmsLayers.depVisualAmenityServices },
-  { label: "Water-flow regulation", field: "avg_dep_water_flow_regulation", legendLayerName: qgisWmsLayers.depWaterFlowRegulation },
-  { label: "Water purification", field: "avg_dep_water_purification", legendLayerName: qgisWmsLayers.depWaterPurification },
-  { label: "Water supply", field: "avg_dep_water_supply", legendLayerName: qgisWmsLayers.depWaterSupply },
+  { label: "All ecosystem dependencies", field: "mean_dep_score", legendLayerName: "Average dependency" },
+  { label: "Air filtration", field: "avg_dep_air_filtration", legendLayerName: "Air filtration" },
+  { label: "Biological control", field: "avg_dep_biological_control", legendLayerName: "Biological control" },
+  { label: "Biomass provisioning", field: "avg_dep_biomass_provisioning", legendLayerName: "Biomass provisioning" },
+  { label: "Education, scientific and research services", field: "avg_dep_education_scientific_and_research_services", legendLayerName: "Education scientific and research services" },
+  { label: "Flood control", field: "avg_dep_flood_control", legendLayerName: "Flood control" },
+  { label: "Genetic material", field: "avg_dep_genetic_material", legendLayerName: "Genetic material" },
+  { label: "Global climate regulation", field: "avg_dep_global_climate_regulation", legendLayerName: "Global climate regulation" },
+  { label: "Local climate regulation", field: "avg_dep_local_micro_and_meso_climate_regulation", legendLayerName: "Local climate regulation" },
+  { label: "Noise attenuation", field: "avg_dep_noise_attenuation", legendLayerName: "Noise attenuation" },
+  { label: "Nursery population and habitat maintenance", field: "avg_dep_nursery_population_and_habitat_maintenance", legendLayerName: "Nursery population and habitat maintenance" },
+  { label: "Animal-based energy", field: "avg_dep_other_provisioning_services_animal_based_energy", legendLayerName: "Animal-based energy" },
+  { label: "Dilution by atmosphere and ecosystems", field: "avg_dep_other_regulating_and_maintenance_service_dilution_by_atmosphere_and_ecosystems", legendLayerName: "Dilution by atmosphere and ecosystems" },
+  { label: "Mediation of sensory impacts", field: "avg_dep_other_regulating_and_maintenance_service_mediation_of_sensory_impacts_other_than_noise", legendLayerName: "Mediation of sensory impacts" },
+  { label: "Pollination", field: "avg_dep_pollination", legendLayerName: "Pollination" },
+  { label: "Rainfall pattern regulation", field: "avg_dep_rainfall_pattern_regulation", legendLayerName: "Rainfall pattern regulation" },
+  { label: "Recreation-related services", field: "avg_dep_recreation_related_services", legendLayerName: "Recreation-related services" },
+  { label: "Soil and sediment retention", field: "avg_dep_soil_and_sediment_retention", legendLayerName: "Soil and sediment retention" },
+  { label: "Soil quality regulation", field: "avg_dep_soil_quality_regulation", legendLayerName: "Soil quality regulation" },
+  { label: "Solid-waste remediation", field: "avg_dep_solid_waste_remediation", legendLayerName: "Solid-waste remediation" },
+  { label: "Spiritual, artistic and symbolic services", field: "avg_dep_spiritual_artistic_and_symbolic_services", legendLayerName: "Spiritual artistic and symbolic services" },
+  { label: "Storm mitigation", field: "avg_dep_storm_mitigation", legendLayerName: "Storm mitigation" },
+  { label: "Visual amenity services", field: "avg_dep_visual_amenity_services", legendLayerName: "Visual amenity services" },
+  { label: "Water-flow regulation", field: "avg_dep_water_flow_regulation", legendLayerName: "Water-flow regulation" },
+  { label: "Water purification", field: "avg_dep_water_purification", legendLayerName: "Water purification" },
+  { label: "Water supply", field: "avg_dep_water_supply", legendLayerName: "Water supply" },
 ];
 
 const dependencyConfigByLabel = new Map(DEPENDENCY_OPTIONS.map((entry) => [entry.label, entry]));

@@ -1,5 +1,4 @@
 import { pressureLegendByLayerName } from "../config/pressureLegendData.js";
-import { qgisWmsLayers } from "../config/qgisServer.js";
 import { getState, subscribe } from "../state/state.js";
 import {
   ensurePmtilesProtocolRegistered,
