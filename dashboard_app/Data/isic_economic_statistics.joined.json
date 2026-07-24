@@ -1,0 +1,225 @@
+{
+  "sourceFiles": {
+    "validatedEconomicStatistics": "Data/scottish_economic_statistics.validated.json",
+    "governmentToIsicMapping": "Data/scottish_government_to_isic_mapping.json"
+  },
+  "rows": [
+    {
+      "sectorKey": "isic-accommodation-and-food-service-activities",
+      "isicSection": "Accommodation and food service activities",
+      "annualOutputBn": 0.6,
+      "employmentFte": 9400.0,
+      "contributingGovernmentIndustries": [
+        "Food & beverage services"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industry Food & beverage services does not fully cover accommodation and food service activities."
+    },
+    {
+      "sectorKey": "isic-activities-of-extraterritorial-organizations-and-bodies",
+      "isicSection": "Activities of extraterritorial organizations and bodies",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-activities-of-households-as-employers-undifferentiated-goods-and-services-producing-activities-of-households-for-own-use",
+      "isicSection": "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-administrative-and-support-service-activities",
+      "isicSection": "Administrative and support service activities",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-agriculture-forestry-and-fishing",
+      "isicSection": "Agriculture, forestry and fishing",
+      "annualOutputBn": 9.9,
+      "employmentFte": 76400.0,
+      "contributingGovernmentIndustries": [
+        "Agriculture",
+        "Aquaculture"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industries Agriculture and Aquaculture cover only part of this broader ISIC Section."
+    },
+    {
+      "sectorKey": "isic-arts-entertainment-and-recreation",
+      "isicSection": "Arts, entertainment and recreation",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-construction",
+      "isicSection": "Construction",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-education",
+      "isicSection": "Education",
+      "annualOutputBn": 0.4,
+      "employmentFte": 7800.0,
+      "contributingGovernmentIndustries": [
+        "Education"
+      ],
+      "coverageStatus": "full",
+      "coverageNote": "Source industry label Education appears to align with the canonical ISIC Section."
+    },
+    {
+      "sectorKey": "isic-electricity-gas-steam-and-air-conditioning-supply",
+      "isicSection": "Electricity, gas, steam and air conditioning supply",
+      "annualOutputBn": 11.7,
+      "employmentFte": 31300.0,
+      "contributingGovernmentIndustries": [
+        "Electricity",
+        "Gas & Air Conditioning"
+      ],
+      "coverageStatus": "uncertain",
+      "coverageNote": "Source industries Electricity plus Gas & Air Conditioning may not fully represent steam and full air-conditioning scope."
+    },
+    {
+      "sectorKey": "isic-financial-and-insurance-activities",
+      "isicSection": "Financial and insurance activities",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-human-health-and-social-work-activities",
+      "isicSection": "Human health and social work activities",
+      "annualOutputBn": 0.7,
+      "employmentFte": 8200.0,
+      "contributingGovernmentIndustries": [
+        "Health"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industry Health does not explicitly cover full social work scope in the ISIC Section."
+    },
+    {
+      "sectorKey": "isic-information-and-communication",
+      "isicSection": "Information and communication",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-manufacturing",
+      "isicSection": "Manufacturing",
+      "annualOutputBn": 2.9,
+      "employmentFte": 16900.0,
+      "contributingGovernmentIndustries": [
+        "Fish & fruit processing",
+        "Meat Processing"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industries Fish & fruit processing and Meat Processing cover only part of Manufacturing."
+    },
+    {
+      "sectorKey": "isic-mining-and-quarrying",
+      "isicSection": "Mining and quarrying",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-other-service-activities",
+      "isicSection": "Other service activities",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-professional-scientific-and-technical-activities",
+      "isicSection": "Professional, scientific and technical activities",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-public-administration-and-defence-compulsory-social-security",
+      "isicSection": "Public administration and defence; compulsory social security",
+      "annualOutputBn": 0.9,
+      "employmentFte": 7100.0,
+      "contributingGovernmentIndustries": [
+        "Pubic administration & defence"
+      ],
+      "coverageStatus": "uncertain",
+      "coverageNote": "Source industry label appears aligned, but complete compulsory social-security scope is uncertain without a concordance note."
+    },
+    {
+      "sectorKey": "isic-real-estate-activities",
+      "isicSection": "Real estate activities",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-transportation-and-storage",
+      "isicSection": "Transportation and storage",
+      "annualOutputBn": null,
+      "employmentFte": null,
+      "contributingGovernmentIndustries": [],
+      "coverageStatus": "unavailable",
+      "coverageNote": "No mapped Scottish Government industry statistics currently available for this ISIC Section."
+    },
+    {
+      "sectorKey": "isic-water-supply-sewerage-waste-management-and-remediation-activities",
+      "isicSection": "Water supply; sewerage, waste management and remediation activities",
+      "annualOutputBn": 2.3,
+      "employmentFte": 9500.0,
+      "contributingGovernmentIndustries": [
+        "Water & Sewage"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industry Water & Sewage does not fully cover waste management and remediation activities."
+    },
+    {
+      "sectorKey": "isic-wholesale-and-retail-trade-repair-of-motor-vehicles-and-motorcycles",
+      "isicSection": "Wholesale and retail trade; repair of motor vehicles and motorcycles",
+      "annualOutputBn": 1.1,
+      "employmentFte": 15800.0,
+      "contributingGovernmentIndustries": [
+        "Retail - excl. vehicles"
+      ],
+      "coverageStatus": "partial",
+      "coverageNote": "Source industry Retail - excl. vehicles does not fully cover this broader ISIC Section."
+    }
+  ],
+  "validation": {
+    "matchedIsicSections": 9,
+    "unavailableIsicSections": 12,
+    "duplicateSourceIndustryLabels": [],
+    "duplicateMappingPairs": [],
+    "failedJoins": []
+  }
+}

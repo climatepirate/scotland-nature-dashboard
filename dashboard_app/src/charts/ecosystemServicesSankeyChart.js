@@ -55,7 +55,7 @@ function parseCsvLine(line) {
   return values;
 }
 
-function parseDashboardMasterRows(csvText) {
+function parseCompactRows(csvText) {
   const lines = csvText.split(/\r?\n/).filter((line) => line.trim().length > 0);
   if (!lines.length) {
     return [];
@@ -64,7 +64,7 @@ function parseDashboardMasterRows(csvText) {
   const headers = parseCsvLine(lines[0]).map((value) => value.trim());
   const indexByName = Object.fromEntries(headers.map((name, index) => [name, index]));
 
-  const required = ["local_authority_code", "coarse_category", "first_isic_section", "scorable_flag"];
+  const required = ["local_authority_code", "coarse_category", "first_isic_section"];
   const missing = required.filter((name) => !(name in indexByName));
   if (missing.length) {
     throw new Error(`Sankey source is missing required columns: ${missing.join(", ")}`);
@@ -76,12 +76,6 @@ function parseDashboardMasterRows(csvText) {
     const localAuthorityCode = (values[indexByName.local_authority_code] || "").trim();
     const coarseCategory = (values[indexByName.coarse_category] || "").trim();
     const firstIsicSection = (values[indexByName.first_isic_section] || "").trim();
-    const scorableFlag = (values[indexByName.scorable_flag] || "").trim().toLowerCase();
-
-    if (scorableFlag !== "true") {
-      continue;
-    }
-
     if (!localAuthorityCode || !coarseCategory || !firstIsicSection) {
       continue;
     }
@@ -582,10 +576,10 @@ export function initEcosystemServicesSankeyChart() {
 
   Promise.all([
     loadGlobalFilterData(),
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
+    fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact"),
   ])
     .then(([, csvText]) => {
-      sourceRows = parseDashboardMasterRows(csvText);
+      sourceRows = parseCompactRows(csvText);
       populateFilterOptions();
     })
     .catch((error) => {

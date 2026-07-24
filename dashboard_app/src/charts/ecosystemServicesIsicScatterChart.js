@@ -109,13 +109,6 @@ function formatNumber(value, digits = 2) {
   });
 }
 
-function normalizeCompanyId(value) {
-  if (!value) {
-    return "";
-  }
-  return String(value).replace(/\.0+$/, "").trim();
-}
-
 function getCoarseColor(name) {
   return COARSE_COLORS[name] || COARSE_COLORS.Unclassified;
 }
@@ -129,44 +122,20 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function buildRows(dashboardRows, profileRows) {
-  const profileByCompanyId = new Map();
-  profileRows.forEach((row) => {
-    const companyId = normalizeCompanyId(row.company_id);
-    if (!companyId) {
-      return;
-    }
-
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    profileByCompanyId.set(companyId, {
-      dep,
-      press,
-      coarseCategory: row["Coarse Category"] || "Unclassified",
-    });
-  });
-
+function buildRows(compactRows) {
   const rows = [];
-  dashboardRows.forEach((row) => {
-    if (String(row.scorable_flag || "").toLowerCase() !== "true") {
-      return;
-    }
-
-    const companyId = normalizeCompanyId(row.company_id);
-    const profile = profileByCompanyId.get(companyId);
-    if (!profile) {
-      return;
-    }
-
-    const coarseCategory = (row.coarse_category || profile.coarseCategory || "Unclassified").trim();
+  compactRows.forEach((row) => {
+    const coarseCategory = (row.coarse_category || "Unclassified").trim();
     const isicSection = (row.first_isic_section || "").trim();
     const localAuthorityCode = (row.local_authority_code || "").trim();
+    const dep = Number.parseFloat(row.dep_score);
+    const press = Number.parseFloat(row.press_score);
 
     if (!coarseCategory || coarseCategory === "Dormant Company" || !isicSection) {
+      return;
+    }
+
+    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
       return;
     }
 
@@ -174,8 +143,8 @@ function buildRows(dashboardRows, profileRows) {
       coarseCategory,
       isicSection,
       localAuthorityCode,
-      dep: profile.dep,
-      press: profile.press,
+      dep,
+      press,
     });
   });
 
@@ -427,14 +396,10 @@ export function initEcosystemServicesIsicScatterChart() {
     queueRender();
   });
 
-  Promise.all([
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
-    fetchDashboardDataText("company_integrated_profile.csv", "company integrated profile"),
-  ])
-    .then(([dashboardCsv, profileCsv]) => {
-      const dashboardRows = parseTable(dashboardCsv);
-      const profileRows = parseTable(profileCsv);
-      rows = buildRows(dashboardRows, profileRows);
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      rows = buildRows(compactRows);
       queueRender();
     })
     .catch((error) => {

@@ -181,62 +181,35 @@ function compareNumbers(a, b, direction) {
   return direction === "asc" ? comparison : -comparison;
 }
 
-function buildRecords(dashboardRows, profileRows) {
-  const profileByCompanyId = new Map();
-
-  profileRows.forEach((row) => {
-    const companyId = normalizeCompanyId(row.company_id);
-    if (!companyId) {
-      return;
-    }
-
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    profileByCompanyId.set(companyId, {
-      companyId,
-      companyName: (row.CompanyName || row.company_name || "").trim(),
-      dep,
-      press,
-      services: splitSummaryList(row.top_5_ecosystem_services),
-      pressures: splitSummaryList(row.top_5_pressures),
-      profileCoarseCategory: (row["Coarse Category"] || row.coarse_category || "Unclassified").trim(),
-    });
-  });
-
+function buildRecords(compactRows) {
   const records = [];
-  dashboardRows.forEach((row) => {
-    if (String(row.scorable_flag || "").toLowerCase() !== "true") {
-      return;
-    }
-
+  compactRows.forEach((row) => {
     const companyId = normalizeCompanyId(row.company_id);
-    const profile = profileByCompanyId.get(companyId);
-    if (!profile) {
-      return;
-    }
-
-    const coarseCategory = (row.coarse_category || row["Coarse Category"] || profile.profileCoarseCategory || "Unclassified").trim();
+    const companyName = (row.company_name || row.CompanyName || "").trim();
+    const coarseCategory = (row.coarse_category || row["Coarse Category"] || "Unclassified").trim();
     const isicSection = (row.first_isic_section || "").trim();
     const localAuthorityCode = (row.local_authority_code || "").trim();
+    const dep = Number.parseFloat(row.dep_score);
+    const press = Number.parseFloat(row.press_score);
 
-    if (!coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
+    if (!companyId || !coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
+      return;
+    }
+
+    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
       return;
     }
 
     records.push({
       companyId,
-      companyName: profile.companyName || companyId,
+      companyName: companyName || companyId,
       coarseCategory,
       isicSection,
       localAuthorityCode,
-      totalDependency: profile.dep,
-      totalPressure: profile.press,
-      services: profile.services,
-      pressures: profile.pressures,
+      totalDependency: dep,
+      totalPressure: press,
+      services: splitSummaryList(row.top_5_ecosystem_services),
+      pressures: splitSummaryList(row.top_5_pressures),
     });
   });
 
@@ -728,14 +701,10 @@ export function initEcosystemServicesSummaryRankingTable() {
     queueRender();
   });
 
-  Promise.all([
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
-    fetchDashboardDataText("company_integrated_profile.csv", "company integrated profile"),
-  ])
-    .then(([dashboardCsv, profileCsv]) => {
-      const dashboardRows = parseTable(dashboardCsv);
-      const profileRows = parseTable(profileCsv);
-      records = buildRecords(dashboardRows, profileRows);
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      records = buildRecords(compactRows);
       queueRender();
     })
     .catch((error) => {

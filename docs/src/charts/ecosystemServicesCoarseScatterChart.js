@@ -115,52 +115,20 @@ function getCoarseColor(name) {
   return COARSE_COLORS[name] || COARSE_COLORS.Unclassified;
 }
 
-function normalizeCompanyId(value) {
-  if (!value) {
-    return "";
-  }
-  return String(value).replace(/\.0+$/, "").trim();
-}
-
-function buildScatterRows(dashboardRows, profileRows) {
-  const profileByCompanyId = new Map();
-  profileRows.forEach((row) => {
-    const companyId = normalizeCompanyId(row.company_id);
-    if (!companyId) {
-      return;
-    }
-
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    profileByCompanyId.set(companyId, {
-      dep,
-      press,
-      coarseCategory: row["Coarse Category"] || row.coarse_category || "",
-    });
-  });
-
+function buildScatterRows(compactRows) {
   const rows = [];
-  dashboardRows.forEach((row) => {
-    const scorable = String(row.scorable_flag || "").toLowerCase() === "true";
-    if (!scorable) {
-      return;
-    }
-
-    const companyId = normalizeCompanyId(row.company_id);
-    const profile = profileByCompanyId.get(companyId);
-    if (!profile) {
-      return;
-    }
-
-    const coarseCategory = (row.coarse_category || profile.coarseCategory || "").trim();
+  compactRows.forEach((row) => {
+    const coarseCategory = (row.coarse_category || "").trim();
     const isicSection = (row.first_isic_section || "").trim();
     const localAuthorityCode = (row.local_authority_code || "").trim();
+    const dep = Number.parseFloat(row.dep_score);
+    const press = Number.parseFloat(row.press_score);
 
     if (!coarseCategory || coarseCategory === "Dormant Company") {
+      return;
+    }
+
+    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
       return;
     }
 
@@ -168,8 +136,8 @@ function buildScatterRows(dashboardRows, profileRows) {
       coarseCategory,
       isicSection,
       localAuthorityCode,
-      dep: profile.dep,
-      press: profile.press,
+      dep,
+      press,
     });
   });
 
@@ -392,14 +360,10 @@ export function initEcosystemServicesCoarseScatterChart() {
     hideTooltip();
   });
 
-  Promise.all([
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
-    fetchDashboardDataText("company_integrated_profile.csv", "company integrated profile"),
-  ])
-    .then(([dashboardCsv, profileCsv]) => {
-      const dashboardRows = parseTable(dashboardCsv);
-      const profileRows = parseTable(profileCsv);
-      rows = buildScatterRows(dashboardRows, profileRows);
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      rows = buildScatterRows(compactRows);
       queueRender();
     })
     .catch((error) => {

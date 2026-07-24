@@ -140,44 +140,22 @@ function buildSectorColorMap(rows) {
   return sectorColorMap;
 }
 
-function buildRows(dashboardRows, profileRows) {
-  const profileByCompanyId = new Map();
-  profileRows.forEach((row) => {
-    const companyId = normalizeCompanyId(row.company_id);
-    if (!companyId) {
-      return;
-    }
-
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    profileByCompanyId.set(companyId, {
-      dep,
-      press,
-      companyName: (row.CompanyName || row.company_name || "").trim(),
-    });
-  });
-
+function buildRows(compactRows) {
   const rows = [];
-  dashboardRows.forEach((row) => {
-    if (String(row.scorable_flag || "").toLowerCase() !== "true") {
-      return;
-    }
-
+  compactRows.forEach((row) => {
     const companyId = normalizeCompanyId(row.company_id);
-    const profile = profileByCompanyId.get(companyId);
-    if (!profile) {
-      return;
-    }
-
     const coarseCategory = (row.coarse_category || "").trim();
     const isicSection = (row.first_isic_section || "").trim();
     const localAuthorityCode = (row.local_authority_code || "").trim();
+    const dep = Number.parseFloat(row.dep_score);
+    const press = Number.parseFloat(row.press_score);
+    const companyName = (row.company_name || row.CompanyName || "").trim();
 
-    if (!coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
+    if (!companyId || !coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
+      return;
+    }
+
+    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
       return;
     }
 
@@ -187,12 +165,12 @@ function buildRows(dashboardRows, profileRows) {
 
     rows.push({
       companyId,
-      companyName: profile.companyName || companyId,
+      companyName: companyName || companyId,
       coarseCategory,
       isicSection,
       localAuthorityCode,
-      dep: profile.dep,
-      press: profile.press,
+      dep,
+      press,
     });
   });
 
@@ -645,14 +623,10 @@ export function initEcosystemServicesCompanyScatterChart() {
     tooltipMode = null;
   });
 
-  Promise.all([
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
-    fetchDashboardDataText("company_integrated_profile.csv", "company integrated profile"),
-  ])
-    .then(([dashboardCsv, profileCsv]) => {
-      const dashboardRows = parseTable(dashboardCsv);
-      const profileRows = parseTable(profileCsv);
-      allRows = buildRows(dashboardRows, profileRows);
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      allRows = buildRows(compactRows);
       populateCoarseFilter();
       queueRender();
     })
