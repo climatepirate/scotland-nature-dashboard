@@ -2,8 +2,8 @@ import {
   DEFAULT_ECONOMIC_EXPOSURE_WEIGHTS,
   calculateEconomicExposureIndex,
 } from "../charts/economicExposureIndex.js";
-import { loadSectorVulnerabilityRows } from "../charts/sectorVulnerabilityAdapter.js";
-import { loadIsicEconomicStatisticsRows } from "./isicEconomicStatisticsData.js";
+import { loadSectorVulnerabilityRows } from "../charts/sectorVulnerabilityAdapter.js?v=3";
+import { loadIsicEconomicStatisticsRows } from "./isicEconomicStatisticsData.js?v=3";
 
 let sharedDatasetPromise = null;
 

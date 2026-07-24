@@ -1,4 +1,4 @@
-import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js";
+import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js?v=3";
 
 const COARSE_COLORS = {
   "Consumer & Visitor Economy": "#3d8a95",

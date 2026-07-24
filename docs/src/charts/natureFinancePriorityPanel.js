@@ -1,4 +1,4 @@
-import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js";
+import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js?v=3";
 
 function toNumber(value) {
   const parsed = Number(value);
