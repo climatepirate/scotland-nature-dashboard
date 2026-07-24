@@ -2000,7 +2000,10 @@ body {
   .business-vulnerability-top-split {
     grid-template-columns: 1fr;
   }
-}
+
+  .business-vulnerability-map-panel {
+    min-height: 480px;
+  }
 
 @media (max-width: 720px) {
   .top-nav-list {

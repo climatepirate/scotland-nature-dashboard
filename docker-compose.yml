@@ -35,6 +35,18 @@ services:
         }
         EOF
 
+        cat >/etc/nginx/qgis.d/25-data-routing.conf <<'EOF'
+        location /Data/tiles/ {
+          alias /io/workspace/dashboard_app/Data/tiles/;
+        }
+        location /Data/context/ {
+          alias /io/workspace/dashboard_app/Data/context/;
+        }
+        EOF
+
+        sed -i 's/\(application\/javascript\b.*\)js;/\1js mjs;/' /etc/nginx/mime.types
+        sed -i 's/\(application\/json\b.*\)json;/\1json geojson;/' /etc/nginx/mime.types
+
         exec /usr/local/bin/start-xvfb-nginx.sh
     volumes:
       - ./:/io/workspace:ro
