@@ -90,6 +90,14 @@ build/
 # ============================================================
 
 Data/
+!dashboard_app/Data/
+!dashboard_app/Data/**
+!dashboard_app/src/data/
+!dashboard_app/src/data/**
+!docs/Data/
+!docs/Data/**
+!docs/src/data/
+!docs/src/data/**
 
 # ============================================================
 # Generated GIS outputs
