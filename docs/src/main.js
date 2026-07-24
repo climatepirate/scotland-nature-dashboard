@@ -1,0 +1,51 @@
+import { renderDashboardShell } from "./pages/dashboardShell.js?v=2";
+import { createDashboardAppShell } from "./pages/dashboardAppShell.js";
+import { initOverallBusinessMap } from "./maps/overallBusinessMap.js";
+import { initEcosystemDependencyMap } from "./maps/ecosystemDependencyMap.js";
+import { initEcosystemPressureMap } from "./maps/ecosystemPressureMap.js";
+import { initDependencyRidgelineChart } from "./charts/dependencyRidgelineChart.js";
+import { initPressureRidgelineChart } from "./charts/pressureRidgelineChart.js";
+import { initEcosystemServicesSankeyChart } from "./charts/ecosystemServicesSankeyChart.js?v=2";
+import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServicesCoarseScatterChart.js?v=2";
+import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js";
+import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js";
+import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js";
+import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js";
+import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js";
+import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js";
+import { initNatureFinanceBubbleChart } from "./charts/natureFinanceBubbleChart.js";
+import { initNatureFinanceKpiCards } from "./charts/natureFinanceKpiCards.js";
+import { initNatureFinancePriorityPanel } from "./charts/natureFinancePriorityPanel.js";
+import { initNatureFinancePriorityRankingTable } from "./tables/natureFinancePriorityRankingTable.js";
+import { initEcosystemServicesDonutChart } from "./charts/ecosystemServicesDonutChart.js";
+import { initEnvironmentalPressuresDonutChart } from "./charts/environmentalPressuresDonutChart.js";
+
+const appRoot = document.getElementById("app");
+const dashboardShell = renderDashboardShell();
+const appShell = createDashboardAppShell(dashboardShell);
+appRoot.append(appShell.element);
+appShell.setPageFromHash();
+
+window.addEventListener("hashchange", () => {
+	appShell.setPageFromHash();
+});
+
+initDependencyRidgelineChart();
+initPressureRidgelineChart();
+initOverallBusinessMap();
+initEcosystemDependencyMap();
+initEcosystemPressureMap();
+initEcosystemServicesSankeyChart();
+initEcosystemServicesCoarseScatterChart();
+initEcosystemServicesIsicScatterChart();
+initEcosystemServicesCompanyScatterChart();
+initEcosystemServicesSummaryRankingTable();
+initBusinessVulnerabilitySummaryCards();
+initBusinessVulnerabilityMap();
+initBusinessVulnerabilityProfileTable();
+initNatureFinanceBubbleChart();
+initNatureFinanceKpiCards();
+initNatureFinancePriorityPanel();
+initNatureFinancePriorityRankingTable();
+initEcosystemServicesDonutChart();
+initEnvironmentalPressuresDonutChart();
