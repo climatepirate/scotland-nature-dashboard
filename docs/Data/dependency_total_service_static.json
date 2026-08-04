@@ -1,0 +1,104 @@
+{
+  "rows": [
+    {
+      "service": "Water flow regulation",
+      "total": 1196024.0
+    },
+    {
+      "service": "Soil and sediment retention",
+      "total": 679120.0
+    },
+    {
+      "service": "Storm mitigation",
+      "total": 677417.0
+    },
+    {
+      "service": "Local (micro and meso) climate regulation",
+      "total": 631028.0
+    },
+    {
+      "service": "Water supply",
+      "total": 614348.0
+    },
+    {
+      "service": "Flood control",
+      "total": 609165.0
+    },
+    {
+      "service": "Global climate regulation",
+      "total": 506425.0
+    },
+    {
+      "service": "Visual amenity services",
+      "total": 477378.0
+    },
+    {
+      "service": "Rainfall pattern regulation",
+      "total": 432505.0
+    },
+    {
+      "service": "Water purification",
+      "total": 372448.0
+    },
+    {
+      "service": "Air Filtration",
+      "total": 290343.0
+    },
+    {
+      "service": "Noise attenuation",
+      "total": 270930.0
+    },
+    {
+      "service": "Spiritual, artistic and symbolic services",
+      "total": 254658.0
+    },
+    {
+      "service": "Other regulating and maintenance service - Mediation of sensory impacts (other than noise)",
+      "total": 228774.0
+    },
+    {
+      "service": "Recreation related services",
+      "total": 196584.0
+    },
+    {
+      "service": "Biological control",
+      "total": 193165.0
+    },
+    {
+      "service": "Education, scientific and research services",
+      "total": 181278.0
+    },
+    {
+      "service": "Solid waste remediation",
+      "total": 174996.0
+    },
+    {
+      "service": "Other regulating and maintenance service - Dilution by atmosphere and ecosystems",
+      "total": 102261.0
+    },
+    {
+      "service": "Other provisioning services - Animal-based energy",
+      "total": 73508.0
+    },
+    {
+      "service": "Biomass provisioning",
+      "total": 67855.0
+    },
+    {
+      "service": "Genetic material",
+      "total": 52345.0
+    },
+    {
+      "service": "Soil quality regulation",
+      "total": 34291.0
+    },
+    {
+      "service": "Nursery population and habitat maintenance",
+      "total": 22074.0
+    },
+    {
+      "service": "Pollination",
+      "total": 17038.0
+    }
+  ]
+}

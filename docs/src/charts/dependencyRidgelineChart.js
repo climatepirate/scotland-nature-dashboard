@@ -317,7 +317,11 @@ export function initDependencyRidgelineChart() {
       const selectedServiceLabel = state.selectedDependency || DEFAULT_SERVICE;
       const serviceKey = resolveServiceKey(data, selectedServiceLabel);
       const fallbackServiceLabel = data.serviceLabelsByKey.get(serviceKey) || selectedServiceLabel || DEFAULT_SERVICE;
-      subtitle.textContent = `Selected ecosystem service: ${selectedServiceLabel || fallbackServiceLabel}`;
+      const selectedServiceDisplay = selectedServiceLabel || fallbackServiceLabel;
+      const selectedServiceSuffix = selectedServiceDisplay === "All ecosystem dependencies"
+        ? " - Mean total dependency score per company"
+        : "";
+      subtitle.textContent = `Selected ecosystem service: ${selectedServiceDisplay}${selectedServiceSuffix}`;
 
       const localAuthority = state.localAuthorityCode || ALL_SCOTLAND;
       const categories = resolveCategoriesForState(data, state, serviceKey);

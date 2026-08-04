@@ -337,7 +337,11 @@ export function initPressureRidgelineChart() {
       const selectedPressureLabel = state.selectedPressure || DEFAULT_PRESSURE;
       const pressureKey = resolvePressureKey(data, selectedPressureLabel);
       const fallbackPressureLabel = data.pressureLabelsByKey.get(pressureKey) || selectedPressureLabel || DEFAULT_PRESSURE;
-      subtitle.textContent = `Selected ecosystem pressure: ${selectedPressureLabel || fallbackPressureLabel}`;
+      const selectedPressureDisplay = selectedPressureLabel || fallbackPressureLabel;
+      const selectedPressureSuffix = selectedPressureDisplay === "All ecosystem pressures"
+        ? " - Mean total pressure score per company"
+        : "";
+      subtitle.textContent = `Selected ecosystem pressure: ${selectedPressureDisplay}${selectedPressureSuffix}`;
 
       const localAuthority = state.localAuthorityCode || ALL_SCOTLAND;
       const categories = resolveCategoriesForState(data, state, pressureKey);

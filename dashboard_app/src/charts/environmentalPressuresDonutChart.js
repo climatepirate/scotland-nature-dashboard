@@ -137,14 +137,14 @@ function renderDonut(container, pressureCounts) {
 
   const centerLabel = document.createElementNS(svgNamespace, "text");
   centerLabel.setAttribute("x", String(cx));
-  centerLabel.setAttribute("y", String(cy - 7));
+  centerLabel.setAttribute("y", String(cy + 14));
   centerLabel.setAttribute("text-anchor", "middle");
   centerLabel.setAttribute("class", "glossary-donut-center-title");
   centerLabel.textContent = "Pressures";
 
   const centerValue = document.createElementNS(svgNamespace, "text");
   centerValue.setAttribute("x", String(cx));
-  centerValue.setAttribute("y", String(cy + 14));
+  centerValue.setAttribute("y", String(cy - 7));
   centerValue.setAttribute("text-anchor", "middle");
   centerValue.setAttribute("class", "glossary-donut-center-value");
   centerValue.textContent = String(pressureCounts.length);

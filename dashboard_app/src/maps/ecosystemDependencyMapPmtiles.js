@@ -4,6 +4,7 @@ import { getState, subscribe, updateState } from "../state/state.js";
 import {
   ensurePmtilesProtocolRegistered,
   loadMapLibrePmtilesAssets,
+  addRecenterControl,
   escapeHtml,
   firstDefinedValue,
   formatNumericValue,
@@ -12,7 +13,6 @@ import {
   formatLegendNumber,
   buildGlobalFilterExpression,
   createLegendElement,
-  applyLegendValues,
 } from "./pmtilesMaplibreRuntime.js";
 
 // PAGE-SPECIFIC CONFIGURATION: Dependency map
@@ -25,6 +25,15 @@ const DEPENDENCY_OUTLINE_SOURCE = "ecosystem-dependency-outline-source";
 const DEPENDENCY_THEMATIC_SOURCE = "ecosystem-dependency-thematic-source";
 
 const DEFAULT_SERVICE = "All ecosystem dependencies";
+const DEPENDENCY_LAYER_CLASS_COUNT = 6;
+const DEPENDENCY_LAYER_PALETTE = [
+  "242,250,236,240",
+  "208,233,195,240",
+  "164,216,153,240",
+  "104,189,118,240",
+  "43,140,84,240",
+  "0,97,73,240",
+];
 
 const DEPENDENCY_LEGEND_STOPS = [
   { label: "2.27 - 2.48", color: "237,247,241,190" },
@@ -116,6 +125,158 @@ function getLegendStopsForSelection(config) {
   return dependencyLegendByLayerName[config.legendLayerName] || [];
 }
 
+function buildLayerStopsFromLegendStops(stops) {
+  const parsedStops = (stops || [])
+    .map((stop) => {
+      const range = parseRangeLabel(stop.label);
+      if (!range) {
+        return null;
+      }
+      return { ...stop, range };
+    })
+    .filter(Boolean);
+
+  if (!parsedStops.length) {
+    return [];
+  }
+
+  const classCount = Math.min(DEPENDENCY_LAYER_CLASS_COUNT, parsedStops.length);
+  const baseSize = Math.floor(parsedStops.length / classCount);
+  let remainder = parsedStops.length % classCount;
+  let offset = 0;
+
+  const groupedStops = [];
+  for (let index = 0; index < classCount; index += 1) {
+    const groupSize = baseSize + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) {
+      remainder -= 1;
+    }
+
+    const group = parsedStops.slice(offset, offset + groupSize);
+    offset += groupSize;
+    if (!group.length) {
+      continue;
+    }
+
+    const start = group[0].range.min;
+    const end = group[group.length - 1].range.max;
+    groupedStops.push({
+      min: start,
+      max: end,
+      color: DEPENDENCY_LAYER_PALETTE[Math.min(index, DEPENDENCY_LAYER_PALETTE.length - 1)],
+      label: `${formatLegendNumber(start)} - ${formatLegendNumber(end)}`,
+    });
+  }
+
+  return groupedStops;
+}
+
+function getLayerStopsForSelection(config) {
+  return buildLayerStopsFromLegendStops(getLegendStopsForSelection(config));
+}
+
+function renderClassifiedLegend(legend, title, subtitle, stops) {
+  if (!legend) {
+    return;
+  }
+
+  legend.title.innerHTML = "";
+  const titleText = document.createElement("span");
+  titleText.className = "overall-gradient-legend-title-text";
+
+  const legendLabel = document.createElement("span");
+  legendLabel.className = "overall-gradient-legend-kicker";
+  legendLabel.textContent = "Legend";
+
+  const titleMain = document.createElement("span");
+  titleMain.className = "overall-gradient-legend-main";
+  titleMain.textContent = title;
+
+  const titleSub = document.createElement("span");
+  titleSub.className = "overall-gradient-legend-sub";
+  titleSub.textContent = subtitle;
+
+  titleText.append(legendLabel, titleMain, titleSub);
+  legend.title.append(titleText);
+  legend.bar.style.display = "none";
+
+  const labelsContainer = legend.bar.nextElementSibling;
+  if (!labelsContainer) {
+    return;
+  }
+  labelsContainer.className = "overall-gradient-legend-labels overall-gradient-legend-classes";
+  labelsContainer.innerHTML = "";
+
+  stops.forEach((stop) => {
+    const row = document.createElement("div");
+    row.className = "overall-gradient-legend-class-row";
+
+    const swatch = document.createElement("span");
+    swatch.className = "overall-gradient-legend-class-swatch";
+    swatch.style.background = rgba255ToCss(stop.color);
+    swatch.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "overall-gradient-legend-class-label";
+    label.textContent = `${formatLegendNumber(stop.min)} - ${formatLegendNumber(stop.max)}`;
+
+    row.append(swatch, label);
+    labelsContainer.append(row);
+  });
+}
+
+function makeLegendCollapsible(legend) {
+  if (!legend) {
+    return null;
+  }
+
+  const legendRoot = legend.title?.closest(".overall-gradient-legend");
+  if (!legendRoot) {
+    return null;
+  }
+
+  legendRoot.classList.add("overall-gradient-legend--collapsible");
+
+  const title = legend.title;
+  const chevron = document.createElement("span");
+  chevron.className = "overall-gradient-legend-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  title.append(chevron);
+
+  title.setAttribute("role", "button");
+  title.setAttribute("tabindex", "0");
+  title.setAttribute("aria-label", "Toggle map legend");
+  legendRoot.classList.add("is-collapsed");
+  title.setAttribute("aria-expanded", "false");
+  chevron.textContent = ">";
+
+  const onToggle = () => {
+    const collapsed = legendRoot.classList.toggle("is-collapsed");
+    title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    chevron.textContent = collapsed ? ">" : "v";
+  };
+
+  const onKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onToggle();
+    }
+  };
+
+  title.addEventListener("click", onToggle);
+  title.addEventListener("keydown", onKeyDown);
+
+  return () => {
+    title.removeEventListener("click", onToggle);
+    title.removeEventListener("keydown", onKeyDown);
+    title.removeAttribute("role");
+    title.removeAttribute("tabindex");
+    title.removeAttribute("aria-label");
+    title.removeAttribute("aria-expanded");
+    chevron.remove();
+  };
+}
+
 // PAGE-SPECIFIC: Build color step expression for dependency value
 function buildColorExpression(propertyName, stops) {
   const expression = ["step", ["to-number", ["coalesce", ["get", propertyName], 0], 0]];
@@ -187,7 +348,7 @@ export async function initEcosystemDependencyMapPmtiles() {
     container,
     style: buildMapStyle(),
     center: [-4.3, 56.7],
-    zoom: 6,
+    zoom: 5.7,
     minZoom: 5,
     maxZoom: 12,
     attributionControl: false,
@@ -195,7 +356,15 @@ export async function initEcosystemDependencyMapPmtiles() {
   });
   container._ecosystemDependencyPmtilesMap = map;
 
+  addRecenterControl(map, maplibregl, {
+    center: [-4.3, 56.7],
+    zoom: 5.7,
+    bearing: 0,
+    pitch: 0,
+  });
+
   const legend = createLegendElement(container);
+  let disposeLegendToggle = null;
   let activeServiceLabel = DEFAULT_SERVICE;
   let activeConfig = dependencyConfigByLabel.get(activeServiceLabel) || DEPENDENCY_OPTIONS[0];
 
@@ -219,10 +388,14 @@ export async function initEcosystemDependencyMapPmtiles() {
       serviceSelector.value = activeServiceLabel;
     }
 
-    const stops = getLegendStopsForSelection(nextConfig);
-    map.setPaintProperty(DEPENDENCY_LAYER_ID, "fill-color", buildColorExpression(activeConfig.field, stops));
+    const layerStops = getLayerStopsForSelection(nextConfig);
+    map.setPaintProperty(DEPENDENCY_LAYER_ID, "fill-color", buildColorExpression(activeConfig.field, layerStops));
     map.setPaintProperty(DEPENDENCY_LAYER_ID, "fill-opacity", buildOpacityExpression(activeConfig.field));
-    applyLegendValues(legend, activeServiceLabel, stops);
+    renderClassifiedLegend(legend, activeServiceLabel, "(Mean dependency score per Hexagon)", layerStops);
+    if (disposeLegendToggle) {
+      disposeLegendToggle();
+    }
+    disposeLegendToggle = makeLegendCollapsible(legend);
     updateState({ selectedDependency: activeServiceLabel });
   };
 
@@ -332,6 +505,9 @@ export async function initEcosystemDependencyMapPmtiles() {
 
   map.on("remove", () => {
     unsubscribe();
+    if (disposeLegendToggle) {
+      disposeLegendToggle();
+    }
     if (serviceSelector?._ecosystemDependencyHandler) {
       serviceSelector.removeEventListener("change", serviceSelector._ecosystemDependencyHandler);
       delete serviceSelector._ecosystemDependencyHandler;
@@ -341,6 +517,7 @@ export async function initEcosystemDependencyMapPmtiles() {
     }
   });
 
-  applyLegendValues(legend, activeServiceLabel, getLegendStopsForSelection(activeConfig));
+  renderClassifiedLegend(legend, activeServiceLabel, "(Mean dependency score per Hexagon)", getLayerStopsForSelection(activeConfig));
+  disposeLegendToggle = makeLegendCollapsible(legend);
   map.resize();
 }

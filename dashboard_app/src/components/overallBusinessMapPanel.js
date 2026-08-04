@@ -8,7 +8,7 @@ export function createOverallBusinessMapPanel() {
         <h2 class="panel-title">Scottish Context Map</h2>
         <span class="statistics-info-popover-shell overall-context-info-shell">
           <button type="button" class="statistics-info-trigger" aria-label="Show Scottish Context map information">i</button>
-          <span class="statistics-info-popover overall-context-info-popover" role="tooltip">Maps show spatial analysis of aggregated values per hexagon, not individual business values</span>
+          <span class="statistics-info-popover overall-context-info-popover" role="tooltip">Maps display aggregated values within fixed-area hexagonal grid cells rather than individual business locations. Company Concentration represents the number of businesses in each hexagon, while dependency, pressure and vulnerability maps show mean company scores per hexagon to reduce the influence of business density.</span>
         </span>
       </div>
       <p class="panel-subtitle">Concentration of Scottish Companies and Contextual Layers</p>

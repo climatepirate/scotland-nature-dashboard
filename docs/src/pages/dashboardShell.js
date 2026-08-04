@@ -1,7 +1,9 @@
 import { createMapPanel, createChartPanel } from "../components/panelPlaceholders.js";
 import { createOverallBusinessMapPanel } from "../components/overallBusinessMapPanel.js";
 import { createDependencyMapPanel } from "../components/dependencyMapPanel.js?v=2";
+import { createDependencyTotalServicePanel } from "../components/dependencyTotalServicePanel.js";
 import { createPressureMapPanel } from "../components/pressureMapPanel.js";
+import { createPressureTotalServicePanel } from "../components/pressureTotalServicePanel.js";
 import { createDependencyRidgelinePanel } from "../components/dependencyRidgelinePanel.js";
 import { createPressureRidgelinePanel } from "../components/pressureRidgelinePanel.js";
 import { createStatisticsPanel } from "../components/statisticsPanel.js";
@@ -63,6 +65,7 @@ export function renderDashboardShell() {
   dependencyColumn.append(
     createDependencyMapPanel(),
     createDependencyRidgelinePanel(),
+    createDependencyTotalServicePanel(),
   );
 
   const pressureColumn = document.createElement("section");
@@ -70,6 +73,7 @@ export function renderDashboardShell() {
   pressureColumn.append(
     createPressureMapPanel(),
     createPressureRidgelinePanel(),
+    createPressureTotalServicePanel(),
   );
 
   bottomSplit.append(

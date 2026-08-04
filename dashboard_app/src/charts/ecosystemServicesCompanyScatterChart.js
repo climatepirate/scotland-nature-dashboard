@@ -1,19 +1,8 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
+import { loadMergedCompanyRows } from "./sectorCompanyMasterAdapter.js";
  
 
 const DEFAULT_COARSE_CATEGORY = "Primary & Resource Industries";
-const EXCLUDED_ISIC_SECTIONS = new Set([
-  "Administrative and support service activities",
-  "Financial and insurance activities",
-  "Information and communication",
-  "Professional, scientific and technical activities",
-  "Real estate activities",
-  "Wholesale and retail trade; repair of motor vehicles and motorcycles",
-  "Activities of extraterritorial organizations and bodies",
-  "Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use",
-  "Other service activities",
-  "Public administration and defence; compulsory social security",
-]);
 
 function parseCsvLine(line) {
   const values = [];
@@ -80,6 +69,29 @@ function formatNumber(value, digits = 2) {
   });
 }
 
+function buildLinearTicks(min, max, count = 6) {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return [];
+  }
+  if (min === max) {
+    return [min];
+  }
+
+  const ticks = [];
+  for (let index = 0; index < count; index += 1) {
+    const ratio = count === 1 ? 0 : index / (count - 1);
+    ticks.push(min + ((max - min) * ratio));
+  }
+  return ticks;
+}
+
+function formatAxisTick(value) {
+  return Number(value).toLocaleString(undefined, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  });
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -127,6 +139,11 @@ const PRIMARY_RESOURCE_PALETTE = [
   "#f97316",
 ];
 
+const OVERALL_TREND_COLOR = "#7a7f86";
+const SHARED_QUADRANT_EVENT = "ecosystem-services:isic-quadrants-updated";
+const SHARED_QUADRANT_KEY = "__ecosystemServicesIsicQuadrants";
+const EXCLUDED_COARSE_CATEGORY = "Business & Property Services";
+
 function buildSectorColorMap(rows) {
   const sectors = [...new Set(rows.map((row) => row.isicSection))].sort((a, b) => a.localeCompare(b));
   const usePrimaryResourcePalette = rows.some((row) => row.coarseCategory === "Primary & Resource Industries");
@@ -140,26 +157,25 @@ function buildSectorColorMap(rows) {
   return sectorColorMap;
 }
 
-function buildRows(compactRows) {
+function buildRows(mergedRows) {
   const rows = [];
-  compactRows.forEach((row) => {
+  mergedRows.forEach((row) => {
     const companyId = normalizeCompanyId(row.company_id);
-    const coarseCategory = (row.coarse_category || "").trim();
-    const isicSection = (row.first_isic_section || "").trim();
-    const localAuthorityCode = (row.local_authority_code || "").trim();
+    const coarseCategory = (row.coarse_category || row["Coarse Category"] || "").trim();
+    const isicSection = (row.first_isic_section || row["ISIC Section"] || "").trim();
+    const localAuthorityCode = (row.local_authority_code || row["Local Authority Code"] || "").trim();
+    const companyName = (row.company_name || row.CompanyName || "").trim();
     const dep = Number.parseFloat(row.dep_score);
     const press = Number.parseFloat(row.press_score);
-    const companyName = (row.company_name || row.CompanyName || "").trim();
 
-    if (!companyId || !coarseCategory || coarseCategory === "Dormant Company" || !isicSection || !localAuthorityCode) {
-      return;
-    }
-
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    if (EXCLUDED_ISIC_SECTIONS.has(isicSection)) {
+    if (!companyId
+      || !coarseCategory
+      || coarseCategory === "Dormant Company"
+      || coarseCategory === "Unclassified"
+      || !isicSection
+      || !localAuthorityCode
+      || !Number.isFinite(dep)
+      || !Number.isFinite(press)) {
       return;
     }
 
@@ -171,6 +187,8 @@ function buildRows(compactRows) {
       localAuthorityCode,
       dep,
       press,
+      jitterDep: deterministicJitter(`${companyId}-dep`, 0.7),
+      jitterPress: deterministicJitter(`${companyId}-press`, 0.7),
     });
   });
 
@@ -305,6 +323,10 @@ function filterRows(rows, localCoarseCategory) {
       return false;
     }
 
+    if (row.coarseCategory === EXCLUDED_COARSE_CATEGORY) {
+      return false;
+    }
+
     if (row.coarseCategory !== localCoarseCategory) {
       return false;
     }
@@ -313,14 +335,17 @@ function filterRows(rows, localCoarseCategory) {
   });
 }
 
-function drawChart(canvas, rows) {
+function drawChart(canvas, rows, sharedQuadrants = null) {
   const context = canvas.getContext("2d");
   if (!context) {
     return [];
   }
 
-  const width = canvas.width;
-  const height = canvas.height;
+  const width = canvas.clientWidth || canvas.width;
+  const height = canvas.clientHeight || canvas.height;
+  const pixelRatio = width > 0 ? (canvas.width / width) : 1;
+
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
   context.clearRect(0, 0, width, height);
 
@@ -331,22 +356,31 @@ function drawChart(canvas, rows) {
   const depValues = rows.map((row) => row.dep);
   const pressValues = rows.map((row) => row.press);
 
+  const fallbackXMedian = median(depValues);
+  const fallbackYMedian = median(pressValues);
+  const xMedian = Number.isFinite(sharedQuadrants?.xMedian) ? sharedQuadrants.xMedian : fallbackXMedian;
+  const yMedian = Number.isFinite(sharedQuadrants?.yMedian) ? sharedQuadrants.yMedian : fallbackYMedian;
+
   const depMin = Math.min(...depValues);
   const depMax = Math.max(...depValues);
   const pressMin = Math.min(...pressValues);
   const pressMax = Math.max(...pressValues);
 
-  const xPad = Math.max(0.25, (depMax - depMin) * 0.08 || 0.8);
-  const yPad = Math.max(0.25, (pressMax - pressMin) * 0.08 || 0.8);
+  const depRange = depMax - depMin;
+  const pressRange = pressMax - pressMin;
+  const xPad = Math.max(0.2, (depRange || 1) * 0.12);
+  const yPad = Math.max(0.2, (pressRange || 1) * 0.12);
 
-  const xDomain = [depMin - xPad, depMax + xPad];
-  const yDomain = [pressMin - yPad, pressMax + yPad];
+  const xDomainMax = Math.max(depMax + xPad, xMedian + 0.8);
+  const yDomainMax = Math.max(pressMax + yPad, yMedian + 0.8);
+  const xDomain = [xMedian, xDomainMax];
+  const yDomain = [yMedian, yDomainMax];
 
   const xScale = (value) => margin.left + ((value - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
   const yScale = (value) => margin.top + ((yDomain[1] - value) / (yDomain[1] - yDomain[0])) * plotHeight;
+  const xTicks = buildLinearTicks(xDomain[0], xDomain[1], 5);
+  const yTicks = buildLinearTicks(yDomain[0], yDomain[1], 5);
 
-  const xMedian = median(depValues);
-  const yMedian = median(pressValues);
   const sectorColorMap = buildSectorColorMap(rows);
 
   const rowsBySector = new Map();
@@ -383,6 +417,7 @@ function drawChart(canvas, rows) {
     const segment = {
       isicSection: entry.isicSection,
       r: entry.r,
+      color: sectorColorMap.get(entry.isicSection) || "#66757a",
       startX: points[0].x,
       startY: points[0].y,
       endX: points[points.length - 1].x,
@@ -391,6 +426,30 @@ function drawChart(canvas, rows) {
 
     trendSegments.push(segment);
   });
+
+  const overallTrend = computeLinearTrend(rows);
+  const overallR = computePearson(rows);
+  if (overallTrend && Number.isFinite(overallR)) {
+    const overallIntersections = lineSegmentIntersectionsForPlot({ trend: overallTrend }, xDomain, yDomain);
+    if (overallIntersections.length >= 2) {
+      const points = overallIntersections
+        .map((point) => ({
+          x: xScale(point.x),
+          y: yScale(point.y),
+        }))
+        .sort((a, b) => a.x - b.x || a.y - b.y);
+
+      trendSegments.push({
+        isicSection: "Overall",
+        r: overallR,
+        color: OVERALL_TREND_COLOR,
+        startX: points[0].x,
+        startY: points[0].y,
+        endX: points[points.length - 1].x,
+        endY: points[points.length - 1].y,
+      });
+    }
+  }
 
   context.strokeStyle = "#8aa09b";
   context.lineWidth = 1;
@@ -404,6 +463,33 @@ function drawChart(canvas, rows) {
   context.lineTo(margin.left, margin.top + plotHeight);
   context.stroke();
 
+  context.strokeStyle = "#8fa29e";
+  context.lineWidth = 1;
+  context.fillStyle = "#495957";
+  context.font = "500 11px 'Avenir Next', 'Segoe UI', sans-serif";
+
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  xTicks.forEach((tick) => {
+    const x = xScale(tick);
+    context.beginPath();
+    context.moveTo(x, margin.top + plotHeight);
+    context.lineTo(x, margin.top + plotHeight + 6);
+    context.stroke();
+    context.fillText(formatAxisTick(tick), x, margin.top + plotHeight + 9);
+  });
+
+  context.textAlign = "right";
+  context.textBaseline = "middle";
+  yTicks.forEach((tick) => {
+    const y = yScale(tick);
+    context.beginPath();
+    context.moveTo(margin.left - 6, y);
+    context.lineTo(margin.left, y);
+    context.stroke();
+    context.fillText(formatAxisTick(tick), margin.left - 10, y);
+  });
+
   context.strokeStyle = "#7a8886";
   context.setLineDash([5, 4]);
   context.beginPath();
@@ -416,6 +502,12 @@ function drawChart(canvas, rows) {
   context.lineTo(margin.left + plotWidth, yScale(yMedian));
   context.stroke();
   context.setLineDash([]);
+
+  context.fillStyle = "#586967";
+  context.font = "600 10px 'Avenir Next', 'Segoe UI', sans-serif";
+  context.textAlign = "left";
+  context.textBaseline = "alphabetic";
+  context.fillText("High dep / high press", Math.max(margin.left + 8, width - 560), yScale(yMedian) - 10);
 
   context.fillStyle = "#425654";
   context.font = "600 12px 'Avenir Next', 'Segoe UI', sans-serif";
@@ -431,8 +523,8 @@ function drawChart(canvas, rows) {
 
   const plottedPoints = [];
   rows.forEach((row) => {
-    const x = xScale(row.dep + deterministicJitter(`${row.companyId}-dep`, 0.7));
-    const y = yScale(row.press + deterministicJitter(`${row.companyId}-press`, 0.7));
+    const x = xScale(row.dep + (Number.isFinite(row.jitterDep) ? row.jitterDep : deterministicJitter(`${row.companyId}-dep`, 0.7)));
+    const y = yScale(row.press + (Number.isFinite(row.jitterPress) ? row.jitterPress : deterministicJitter(`${row.companyId}-press`, 0.7)));
     const radius = 2.8;
 
     context.fillStyle = sectorColorMap.get(row.isicSection) || "#66757a";
@@ -455,7 +547,7 @@ function drawChart(canvas, rows) {
   context.clip();
 
   trendSegments.forEach((segment) => {
-    context.strokeStyle = sectorColorMap.get(segment.isicSection) || "#66757a";
+    context.strokeStyle = segment.color || "#66757a";
     context.globalAlpha = 0.42;
     context.lineWidth = 3.5;
     context.lineCap = "round";
@@ -489,20 +581,113 @@ export function initEcosystemServicesCompanyScatterChart() {
   tooltip.style.display = "none";
   chartRoot.append(tooltip);
 
+  const legend = document.createElement("div");
+  legend.className = "ecosystem-services-company-scatter-legend";
+  chartRoot.append(legend);
+
   let allRows = [];
   let plottedPoints = [];
   let trendSegments = [];
   let renderQueued = false;
   let localCoarseCategory = DEFAULT_COARSE_CATEGORY;
   let tooltipMode = null;
+  let isDataLoaded = false;
+  let rowsByCoarseCategory = new Map();
+  let quadrantRowsCache = new Map();
+  let lastRenderKey = "";
 
   const setStatus = (text) => {
     statusElement.textContent = text;
   };
 
+  const publishSharedQuadrants = (xMedian, yMedian) => {
+    if (!Number.isFinite(xMedian) || !Number.isFinite(yMedian)) {
+      return;
+    }
+
+    const current = window[SHARED_QUADRANT_KEY];
+    if (current
+      && Number.isFinite(current.xMedian)
+      && Number.isFinite(current.yMedian)
+      && Math.abs(current.xMedian - xMedian) < 1e-9
+      && Math.abs(current.yMedian - yMedian) < 1e-9) {
+      return;
+    }
+
+    window[SHARED_QUADRANT_KEY] = { xMedian, yMedian };
+    window.dispatchEvent(new CustomEvent(SHARED_QUADRANT_EVENT, {
+      detail: { xMedian, yMedian },
+    }));
+  };
+
+  const publishSharedQuadrantsFromAllRows = () => {
+    const depValues = allRows.map((row) => row.dep);
+    const pressValues = allRows.map((row) => row.press);
+    if (!depValues.length || !pressValues.length) {
+      return;
+    }
+    publishSharedQuadrants(median(depValues), median(pressValues));
+  };
+
+  const rebuildCoarseIndexes = () => {
+    rowsByCoarseCategory = new Map();
+    allRows.forEach((row) => {
+      if (!row.coarseCategory || row.coarseCategory === EXCLUDED_COARSE_CATEGORY) {
+        return;
+      }
+
+      if (!rowsByCoarseCategory.has(row.coarseCategory)) {
+        rowsByCoarseCategory.set(row.coarseCategory, []);
+      }
+
+      rowsByCoarseCategory.get(row.coarseCategory).push(row);
+    });
+    quadrantRowsCache = new Map();
+  };
+
+  const getSharedQuadrants = () => {
+    const shared = window[SHARED_QUADRANT_KEY];
+    if (!shared || !Number.isFinite(shared.xMedian) || !Number.isFinite(shared.yMedian)) {
+      return null;
+    }
+    return {
+      xMedian: shared.xMedian,
+      yMedian: shared.yMedian,
+    };
+  };
+
+  const renderLegend = (rows) => {
+    const sectorColorMap = buildSectorColorMap(rows);
+    const sectors = [...new Set(rows.map((row) => row.isicSection))].sort((a, b) => a.localeCompare(b));
+
+    if (!sectors.length) {
+      legend.style.display = "none";
+      legend.innerHTML = "";
+      return;
+    }
+
+    legend.innerHTML = `
+      <div class="ecosystem-services-company-scatter-legend-title">Legend</div>
+      <div class="ecosystem-services-company-scatter-legend-item ecosystem-services-company-scatter-legend-item--trend">
+        <span class="ecosystem-services-company-scatter-legend-line" style="background:${OVERALL_TREND_COLOR}"></span>
+        <span class="ecosystem-services-company-scatter-legend-label">Overall trend line</span>
+      </div>
+      <div class="ecosystem-services-company-scatter-legend-title">ISIC sections shown</div>
+      <div class="ecosystem-services-company-scatter-legend-list">
+        ${sectors.map((section) => `
+          <div class="ecosystem-services-company-scatter-legend-item">
+            <span class="ecosystem-services-company-scatter-legend-swatch" style="background:${sectorColorMap.get(section) || "#66757a"}"></span>
+            <span class="ecosystem-services-company-scatter-legend-label">${escapeHtml(section)}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+    legend.style.display = "block";
+  };
+
   const populateCoarseFilter = () => {
     coarseSelect.innerHTML = "";
-    const categories = [...new Set(allRows.map((row) => row.coarseCategory))].sort((a, b) => a.localeCompare(b));
+    const categories = [...rowsByCoarseCategory.keys()].sort((a, b) => a.localeCompare(b));
     categories.forEach((category) => {
       ensureOption(coarseSelect, category, category);
     });
@@ -523,31 +708,63 @@ export function initEcosystemServicesCompanyScatterChart() {
     renderQueued = true;
     window.requestAnimationFrame(() => {
       renderQueued = false;
-      const filteredRows = filterRows(allRows, localCoarseCategory);
+      const sharedQuadrants = getSharedQuadrants();
+      const filteredRows = rowsByCoarseCategory.get(localCoarseCategory) || [];
+      const quadrantCacheKey = sharedQuadrants
+        ? `${localCoarseCategory}|${sharedQuadrants.xMedian}|${sharedQuadrants.yMedian}`
+        : `${localCoarseCategory}|none`;
+      let quadrantRows = quadrantRowsCache.get(quadrantCacheKey);
+      if (!quadrantRows) {
+        quadrantRows = sharedQuadrants
+          ? filteredRows.filter((row) => row.dep >= sharedQuadrants.xMedian && row.press >= sharedQuadrants.yMedian)
+          : filteredRows;
+        quadrantRowsCache.set(quadrantCacheKey, quadrantRows);
+      }
 
-      if (!filteredRows.length) {
+      if (!quadrantRows.length) {
+        if (!isDataLoaded) {
+          chartRoot.classList.add("is-empty");
+          canvas.style.display = "none";
+          tooltip.style.display = "none";
+          legend.style.display = "none";
+          tooltipMode = null;
+          setStatus("Loading company scatter...");
+          return;
+        }
         chartRoot.classList.add("is-empty");
         canvas.style.display = "none";
         tooltip.style.display = "none";
+        legend.style.display = "none";
         tooltipMode = null;
-        setStatus("No companies available for the selected coarse category.");
+        setStatus("No companies in this coarse category fall within the high dependency / high pressure quadrant.");
         return;
       }
 
       chartRoot.classList.remove("is-empty");
       canvas.style.display = "block";
+      renderLegend(quadrantRows);
 
       const width = Math.max(740, chartRoot.clientWidth || 0);
-      const height = 968;
-      canvas.width = width;
-      canvas.height = height;
-      const renderResult = drawChart(canvas, filteredRows);
+      const height = 726;
+      const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+      const quadrantXKey = sharedQuadrants ? sharedQuadrants.xMedian : "none";
+      const quadrantYKey = sharedQuadrants ? sharedQuadrants.yMedian : "none";
+      const renderKey = `${localCoarseCategory}|${quadrantRows.length}|${quadrantXKey}|${quadrantYKey}|${width}|${height}|${pixelRatio}`;
+      if (renderKey === lastRenderKey) {
+        setStatus(`${quadrantRows.length.toLocaleString()} companies plotted.`);
+        return;
+      }
+      lastRenderKey = renderKey;
+
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      const renderResult = drawChart(canvas, quadrantRows, sharedQuadrants);
       plottedPoints = renderResult.plottedPoints;
       trendSegments = renderResult.trendSegments;
 
-      const r = computePearson(filteredRows);
-      const rText = Number.isFinite(r) ? `Pearson r = ${formatNumber(r, 3)}` : "Pearson r unavailable";
-      setStatus(`${filteredRows.length.toLocaleString()} companies plotted. ${rText}.`);
+      setStatus(`${quadrantRows.length.toLocaleString()} companies plotted.`);
     });
   };
 
@@ -557,6 +774,9 @@ export function initEcosystemServicesCompanyScatterChart() {
   });
 
   window.addEventListener("resize", () => {
+    queueRender();
+  });
+  window.addEventListener(SHARED_QUADRANT_EVENT, () => {
     queueRender();
   });
 
@@ -604,7 +824,7 @@ export function initEcosystemServicesCompanyScatterChart() {
 
       tooltip.innerHTML = `<div><strong>${escapeHtml(nearestTrend.isicSection)}</strong></div><div>Trend line</div><div>r = ${formatNumber(nearestTrend.r, 3)}</div>`;
       tooltip.style.display = "block";
-      tooltip.style.left = `${Math.min(canvas.width - 280, x + 12)}px`;
+      tooltip.style.left = `${Math.min((canvas.clientWidth || canvas.width) - 280, x + 12)}px`;
       tooltip.style.top = `${Math.max(8, y + 12)}px`;
       tooltipMode = "trend";
       return;
@@ -613,7 +833,7 @@ export function initEcosystemServicesCompanyScatterChart() {
     const row = nearest.row;
     tooltip.innerHTML = `<div><strong>${escapeHtml(row.companyName || row.companyId)}</strong></div><div>${escapeHtml(row.isicSection)}</div><div>${escapeHtml(row.coarseCategory)}</div><div>Dependency: ${formatNumber(row.dep)} | Pressure: ${formatNumber(row.press)}</div>`;
     tooltip.style.display = "block";
-    tooltip.style.left = `${Math.min(canvas.width - 280, nearest.x + 12)}px`;
+    tooltip.style.left = `${Math.min((canvas.clientWidth || canvas.width) - 280, nearest.x + 12)}px`;
     tooltip.style.top = `${Math.max(8, nearest.y - 10)}px`;
     tooltipMode = "point";
   });
@@ -623,11 +843,16 @@ export function initEcosystemServicesCompanyScatterChart() {
     tooltipMode = null;
   });
 
-  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
-    .then((compactCsv) => {
-      const compactRows = parseTable(compactCsv);
-      allRows = buildRows(compactRows);
+  Promise.all([
+    loadMergedCompanyRows(),
+  ])
+    .then(([mergedRows]) => {
+      allRows = buildRows(mergedRows);
+      isDataLoaded = true;
+      rebuildCoarseIndexes();
+      publishSharedQuadrantsFromAllRows();
       populateCoarseFilter();
+      lastRenderKey = "";
       queueRender();
     })
     .catch((error) => {
@@ -635,5 +860,6 @@ export function initEcosystemServicesCompanyScatterChart() {
       chartRoot.classList.add("is-empty");
       canvas.style.display = "none";
       tooltip.style.display = "none";
+      legend.style.display = "none";
     });
 }

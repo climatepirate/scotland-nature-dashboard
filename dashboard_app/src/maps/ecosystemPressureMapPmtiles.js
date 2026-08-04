@@ -1,17 +1,16 @@
 import { pressureLegendByLayerName } from "../config/pressureLegendData.js";
-import { getState, subscribe } from "../state/state.js";
+import { getState, subscribe, updateState } from "../state/state.js";
 import {
   ensurePmtilesProtocolRegistered,
   loadMapLibrePmtilesAssets,
+  addRecenterControl,
   escapeHtml,
   firstDefinedValue,
   formatNumericValue,
   rgba255ToCss,
-  parseRangeLabel,
   formatLegendNumber,
   buildGlobalFilterExpression,
   createLegendElement,
-  applyLegendValues,
 } from "./pmtilesMaplibreRuntime.js";
 
 // PAGE-SPECIFIC CONFIGURATION: Pressure map
@@ -24,6 +23,14 @@ const PRESSURE_OUTLINE_SOURCE = "ecosystem-pressure-outline-source";
 const PRESSURE_THEMATIC_SOURCE = "ecosystem-pressure-thematic-source";
 
 const DEFAULT_SERVICE = "All ecosystem pressures";
+const PRESSURE_LAYER_STOPS = [
+  { min: 0.02, max: 3.36, color: "255,250,230,240" },
+  { min: 3.36, max: 5.07, color: "255,227,170,240" },
+  { min: 5.07, max: 5.70, color: "252,180,98,240" },
+  { min: 5.70, max: 6.55, color: "244,120,62,240" },
+  { min: 6.55, max: 8.05, color: "208,62,45,240" },
+  { min: 8.05, max: 10.50, color: "126,16,27,240" },
+];
 
 const PRESSURE_LEGEND_STOPS = [
   { label: "4.00 - 5.00", color: "255,242,221,190" },
@@ -92,6 +99,112 @@ function getLegendStopsForSelection(config) {
   return pressureLegendByLayerName[config.legendLayerName] || [];
 }
 
+function getLayerStopsForSelection(config) {
+  return PRESSURE_LAYER_STOPS;
+}
+
+function renderClassifiedLegend(legend, title, subtitle, stops) {
+  if (!legend) {
+    return;
+  }
+
+  legend.title.innerHTML = "";
+  const titleText = document.createElement("span");
+  titleText.className = "overall-gradient-legend-title-text";
+
+  const legendLabel = document.createElement("span");
+  legendLabel.className = "overall-gradient-legend-kicker";
+  legendLabel.textContent = "Legend";
+
+  const titleMain = document.createElement("span");
+  titleMain.className = "overall-gradient-legend-main";
+  titleMain.textContent = title;
+
+  const titleSub = document.createElement("span");
+  titleSub.className = "overall-gradient-legend-sub";
+  titleSub.textContent = subtitle;
+
+  titleText.append(legendLabel, titleMain, titleSub);
+  legend.title.append(titleText);
+  legend.bar.style.display = "none";
+
+  const labelsContainer = legend.bar.nextElementSibling;
+  if (!labelsContainer) {
+    return;
+  }
+  labelsContainer.className = "overall-gradient-legend-labels overall-gradient-legend-classes";
+  labelsContainer.innerHTML = "";
+
+  stops.forEach((stop) => {
+    const row = document.createElement("div");
+    row.className = "overall-gradient-legend-class-row";
+
+    const swatch = document.createElement("span");
+    swatch.className = "overall-gradient-legend-class-swatch";
+    swatch.style.background = rgba255ToCss(stop.color);
+    swatch.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("span");
+    label.className = "overall-gradient-legend-class-label";
+    label.textContent = `${formatLegendNumber(stop.min)} - ${formatLegendNumber(stop.max)}`;
+
+    row.append(swatch, label);
+    labelsContainer.append(row);
+  });
+}
+
+function makeLegendCollapsible(legend) {
+  if (!legend) {
+    return null;
+  }
+
+  const legendRoot = legend.title?.closest(".overall-gradient-legend");
+  if (!legendRoot) {
+    return null;
+  }
+
+  legendRoot.classList.add("overall-gradient-legend--collapsible");
+
+  const title = legend.title;
+  const chevron = document.createElement("span");
+  chevron.className = "overall-gradient-legend-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  title.append(chevron);
+
+  title.setAttribute("role", "button");
+  title.setAttribute("tabindex", "0");
+  title.setAttribute("aria-label", "Toggle map legend");
+  legendRoot.classList.add("is-collapsed");
+  title.setAttribute("aria-expanded", "false");
+  chevron.textContent = ">";
+
+  const onToggle = () => {
+    const collapsed = legendRoot.classList.toggle("is-collapsed");
+    title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    chevron.textContent = collapsed ? ">" : "v";
+  };
+
+  const onKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onToggle();
+    }
+  };
+
+  title.addEventListener("click", onToggle);
+  title.addEventListener("keydown", onKeyDown);
+
+  return () => {
+    title.removeEventListener("click", onToggle);
+    title.removeEventListener("keydown", onKeyDown);
+    title.removeAttribute("role");
+    title.removeAttribute("tabindex");
+    title.removeAttribute("aria-label");
+    title.removeAttribute("aria-expanded");
+    chevron.remove();
+  };
+}
+
 // PAGE-SPECIFIC: Build color step expression for pressure value
 function buildColorExpression(propertyName, stops) {
   const expression = ["step", ["to-number", ["coalesce", ["get", propertyName], 0], 0]];
@@ -101,11 +214,11 @@ function buildColorExpression(propertyName, stops) {
 
   expression.push(rgba255ToCss(stops[0].color));
   for (let index = 1; index < stops.length; index += 1) {
-    const range = parseRangeLabel(stops[index].label);
-    if (!range) {
+    const threshold = Number(stops[index].min);
+    if (!Number.isFinite(threshold)) {
       continue;
     }
-    expression.push(range.min, rgba255ToCss(stops[index].color));
+    expression.push(threshold, rgba255ToCss(stops[index].color));
   }
 
   return expression;
@@ -161,7 +274,7 @@ export async function initEcosystemPressureMapPmtiles() {
     container,
     style: buildMapStyle(),
     center: [-4.3, 56.7],
-    zoom: 6,
+    zoom: 5.7,
     minZoom: 5,
     maxZoom: 12,
     attributionControl: false,
@@ -169,7 +282,15 @@ export async function initEcosystemPressureMapPmtiles() {
   });
   container._ecosystemPressurePmtilesMap = map;
 
+  addRecenterControl(map, maplibregl, {
+    center: [-4.3, 56.7],
+    zoom: 5.7,
+    bearing: 0,
+    pitch: 0,
+  });
+
   const legend = createLegendElement(container);
+  let disposeLegendToggle = null;
   let activeServiceLabel = DEFAULT_SERVICE;
   let activeConfig = pressureConfigByLabel.get(activeServiceLabel) || PRESSURE_OPTIONS[0];
 
@@ -214,7 +335,7 @@ export async function initEcosystemPressureMapPmtiles() {
       source: PRESSURE_THEMATIC_SOURCE,
       "source-layer": "hex_thematic",
       paint: {
-        "fill-color": buildColorExpression(activeConfig.field, getLegendStopsForSelection(activeConfig)),
+        "fill-color": buildColorExpression(activeConfig.field, getLayerStopsForSelection(activeConfig)),
         "fill-opacity": buildOpacityExpression(activeConfig.field),
       },
     }, PRESSURE_OUTLINE_ID);
@@ -243,10 +364,16 @@ export async function initEcosystemPressureMapPmtiles() {
         serviceSelector.value = activeServiceLabel;
       }
 
-      const stops = getLegendStopsForSelection(nextConfig);
-      map.setPaintProperty(PRESSURE_LAYER_ID, "fill-color", buildColorExpression(activeConfig.field, stops));
+      updateState({ selectedPressure: activeServiceLabel });
+
+      const layerStops = getLayerStopsForSelection(nextConfig);
+      map.setPaintProperty(PRESSURE_LAYER_ID, "fill-color", buildColorExpression(activeConfig.field, layerStops));
       map.setPaintProperty(PRESSURE_LAYER_ID, "fill-opacity", buildOpacityExpression(activeConfig.field));
-      applyLegendValues(legend, activeServiceLabel, stops);
+      renderClassifiedLegend(legend, activeServiceLabel, "(Mean pressure score per Hexagon)", layerStops);
+      if (disposeLegendToggle) {
+        disposeLegendToggle();
+      }
+      disposeLegendToggle = makeLegendCollapsible(legend);
     };
 
     setActiveService(activeServiceLabel, true);
@@ -304,6 +431,9 @@ export async function initEcosystemPressureMapPmtiles() {
 
     map.on("remove", () => {
       unsubscribe();
+      if (disposeLegendToggle) {
+        disposeLegendToggle();
+      }
       if (serviceSelector?._ecosystemPressureHandler) {
         serviceSelector.removeEventListener("change", serviceSelector._ecosystemPressureHandler);
         delete serviceSelector._ecosystemPressureHandler;

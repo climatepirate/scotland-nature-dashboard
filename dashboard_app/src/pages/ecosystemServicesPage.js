@@ -69,7 +69,7 @@ function createCoarseCategoryScatterSection() {
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
-  subheading.textContent = "Median dependency and pressure scores by coarse category under active filters.";
+  subheading.textContent = "Median is used to show typical per-business intensity without being skewed by outliers or company count.";
 
   const body = document.createElement("div");
   body.className = "ecosystem-services-slot ecosystem-services-slot--scatter";
@@ -102,7 +102,7 @@ function createIsicScatterSection() {
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
-  subheading.textContent = "Median dependency and pressure scores by ISIC section, coloured by coarse category.";
+  subheading.textContent = "Median is used to show typical per-business intensity without being skewed by outliers or company count.";
 
   const body = document.createElement("div");
   body.className = "ecosystem-services-slot ecosystem-services-slot--scatter";
@@ -131,11 +131,11 @@ function createCompanyScatterSection() {
 
   const heading = document.createElement("h3");
   heading.className = "panel-title";
-  heading.textContent = "High Dependency vs High Pressure, Company-Level Scatter";
+  heading.textContent = "All Company-Level Scatter - Top Quartile of Total Dependency and Pressure Scores";
 
   const subheading = document.createElement("p");
   subheading.className = "panel-subtitle";
-  subheading.textContent = "All companies plotted, coloured by ISIC section. Use the in-chart coarse category filter to subset.";
+  subheading.innerHTML = "High dependency and pressure plotted as the top quartile of all company median dependency and pressure scores<br>Dependency Median = 33<br>Presure Median = 15<br>Coloured by ISIC Sector<br>Individual trends lines plotted for each ISIC Sector";
 
   const body = document.createElement("div");
   body.className = "ecosystem-services-slot ecosystem-services-slot--company-scatter";

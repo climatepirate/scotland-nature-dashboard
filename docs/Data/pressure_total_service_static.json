@@ -1,0 +1,56 @@
+{
+  "rows": [
+    {
+      "pressure": "Disturbances (e.g noise, light)",
+      "total": 1266592.0
+    },
+    {
+      "pressure": "Emissions of toxic soil and water pollutants",
+      "total": 1165024.0
+    },
+    {
+      "pressure": "Area of land use",
+      "total": 723519.0
+    },
+    {
+      "pressure": "Volume of water use",
+      "total": 694136.0
+    },
+    {
+      "pressure": "Emissions of GHG",
+      "total": 635992.0
+    },
+    {
+      "pressure": "Generation and release of solid waste",
+      "total": 608141.0
+    },
+    {
+      "pressure": "Emissions of non-GHG air pollutants",
+      "total": 581783.0
+    },
+    {
+      "pressure": "Area of freshwater use",
+      "total": 348994.0
+    },
+    {
+      "pressure": "Introduction of invasive species",
+      "total": 326314.0
+    },
+    {
+      "pressure": "Area of seabed use",
+      "total": 279635.0
+    },
+    {
+      "pressure": "Emissions of nutrient soil and water pollutants",
+      "total": 268066.0
+    },
+    {
+      "pressure": "Other biotic resource extraction (e.g. fish, timber)",
+      "total": 28644.0
+    },
+    {
+      "pressure": "Other abiotic resource extraction",
+      "total": 5174.0
+    }
+  ]
+}

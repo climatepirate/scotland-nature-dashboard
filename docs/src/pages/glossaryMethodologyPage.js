@@ -158,6 +158,8 @@ export function createGlossaryMethodologyPage() {
                 <p>Environmental pressure describes the ways in which business activities may contribute to the degradation or alteration of nature.</p>
                 <h5 class="glossary-keyterm-subtitle">Dashboard calculation</h5>
                 <p>Pressure ratings are derived from ENCORE and assigned according to each business's ISIC activity. They cover pressures such as land and water use, resource extraction, pollution, waste, emissions, invasive species and disturbance. Pressure scores are analysed separately from dependency scores.</p>
+                <br><br>
+                <p><strong>Combined Score = Dependency Score + Pressure Score</strong></p>
               </div>
               <aside class="glossary-ecosystem-services-chart" aria-label="Environmental pressure proportions chart">
                 <h6 class="glossary-donut-title">Environmental Pressures of Scottish Businesses</h6>

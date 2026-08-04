@@ -1,5 +1,4 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
-import { loadGlobalFilterData, globalFilterData } from "../config/globalFilterData.js";
 import { getState, subscribe, updateState } from "../state/state.js";
 import { emitGlobalFilterChange } from "../filters/globalMapFilter.js";
 
@@ -92,6 +91,16 @@ function parseCompactRows(csvText) {
   }
 
   return rows;
+}
+
+function parseMergedRows(rows) {
+  return rows
+    .map((row) => ({
+      localAuthorityCode: (row.local_authority_code || "").trim(),
+      coarseCategory: (row.coarse_category || "").trim(),
+      firstIsicSection: (row.first_isic_section || "").trim(),
+    }))
+    .filter((row) => row.localAuthorityCode && row.coarseCategory && row.firstIsicSection && row.coarseCategory !== "Dormant Company");
 }
 
 function formatCount(value) {
@@ -431,6 +440,7 @@ export function initEcosystemServicesSankeyChart() {
   let sourceRows = [];
   let renderQueued = false;
   let tooltipEl = null;
+  let isDataLoaded = false;
 
   const setStatus = (message) => {
     statusElement.textContent = message;
@@ -468,6 +478,11 @@ export function initEcosystemServicesSankeyChart() {
       const model = aggregateSankey(sourceRows, state);
 
       if (!model.totalCount || !model.leftNodes.length || !model.rightNodes.length) {
+        if (!isDataLoaded) {
+          chartRoot.innerHTML = '<div class="placeholder"><strong>Loading</strong>Preparing Sankey flow…</div>';
+          setStatus("Loading Sankey data...");
+          return;
+        }
         chartRoot.innerHTML = '<div class="placeholder"><strong>No Results</strong>Adjust filters to view the Sankey flow.</div>';
         setStatus("No businesses match the current filter combination.");
         return;
@@ -500,17 +515,20 @@ export function initEcosystemServicesSankeyChart() {
     authoritySelect.innerHTML = "";
     isicSelect.innerHTML = "";
 
+    const categories = [...new Set(sourceRows.map((row) => row.coarseCategory))].sort((a, b) => a.localeCompare(b));
+    const authorityCodes = [...new Set(sourceRows.map((row) => row.localAuthorityCode))].sort((a, b) => a.localeCompare(b));
+    const isicSections = [...new Set(sourceRows.map((row) => row.firstIsicSection))].sort((a, b) => a.localeCompare(b));
+
     ensureOption(coarseSelect, ALL_CATEGORIES, ALL_CATEGORIES);
-    globalFilterData.coarseCategories.forEach((category) => {
+    categories.forEach((category) => {
       ensureOption(coarseSelect, category, category);
     });
 
     ensureOption(authoritySelect, ALL_SCOTLAND, ALL_SCOTLAND);
-    globalFilterData.localAuthorities.forEach((authority) => {
-      ensureOption(authoritySelect, authority.code, authority.name);
+    authorityCodes.forEach((code) => {
+      ensureOption(authoritySelect, code, code);
     });
 
-    const isicSections = [...new Set(sourceRows.map((row) => row.firstIsicSection))].sort((a, b) => a.localeCompare(b));
     ensureOption(isicSelect, ALL_ISIC, ALL_ISIC);
     isicSections.forEach((section) => {
       ensureOption(isicSelect, section, toIsicDisplayLabel(section));
@@ -574,12 +592,10 @@ export function initEcosystemServicesSankeyChart() {
     hideTooltip();
   });
 
-  Promise.all([
-    loadGlobalFilterData(),
-    fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact"),
-  ])
-    .then(([, csvText]) => {
-      sourceRows = parseCompactRows(csvText);
+  fetchDashboardDataText("dashboard_master.csv", "dashboard master")
+    .then((dashboardMasterCsv) => {
+      sourceRows = parseCompactRows(dashboardMasterCsv);
+      isDataLoaded = true;
       populateFilterOptions();
     })
     .catch((error) => {

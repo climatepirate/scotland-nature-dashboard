@@ -39,6 +39,14 @@ export function createGlossaryMethodologyPage() {
       </div>
     `,
   );
+    const audienceSection = createSectionCard(
+    "Dashboard Audience",
+    `
+      <div class="glossary-introduction-text">
+        <p>The dashboard is designed to support evidence-based decision making by policymakers, businesses and investors, enabling the identification of sectors and locations where business dependencies, pressures and vulnerabilities may inform nature-related policy, investment and nature finance opportunities.</p>
+      </div>
+    `,
+  );
   introductionSection.classList.add("glossary-section-card--introduction");
   introductionSection.insertAdjacentHTML(
     "beforeend",
@@ -70,7 +78,7 @@ export function createGlossaryMethodologyPage() {
           <p>Examines the potential consequences for businesses when the ecosystem services on which they depend are disrupted. It presents functional vulnerability and financial-cost vulnerability separately and together, helping identify sectors whose operations may be particularly sensitive to nature degradation.</p>
         </div>
         <div class="glossary-page-guide-row" role="listitem">
-          <div class="glossary-page-guide-bubble">Economic Pressure</div>
+          <div class="glossary-page-guide-bubble">Economic Exposure</div>
           <p>Explores the economic scale associated with nature-related business exposure by linking sector-level economic information with the dashboard's dependency and vulnerability results. Use this page to identify where nature-related disruption could have wider economic significance and where further investigation, engagement or investment may be warranted.</p>
         </div>
       </div>
@@ -93,7 +101,6 @@ export function createGlossaryMethodologyPage() {
             <tr><td><a href="https://www.encorenature.org/en" target="_blank" rel="noopener noreferrer">ENCORE</a></td><td>Ecosystem dependency, pressure and vulnerability</td></tr>
             <tr><td><a href="https://www.gov.scot/publications/scottish-economic-insights-march-2026/pages/3/" target="_blank" rel="noopener noreferrer">Scottish economic insights: March 2026</a></td><td>Economic output and employment</td></tr>
             <tr><td><a href="https://geoportal.statistics.gov.uk/datasets/3080229224424c9cb53c0b48f5a64d27/about" target="_blank" rel="noopener noreferrer">ONS Postcode Directory</a></td><td>Spatial aggregation</td></tr>
-            <tr><td>QGIS</td><td>Manual spatial processing and mapping</td></tr>
           </tbody>
         </table>
       </div>
@@ -104,7 +111,7 @@ export function createGlossaryMethodologyPage() {
     "Important Limitations",
     `
       <ul class="glossary-list">
-        <li>ENCORE scores are sector-level rather than company-specific.</li>
+        <li>ENCORE scores are sector-level rather than company-specific, company specific analysis can be conducted using the scoring system in this dashboard alongside individual company data such as finances and business size.</li>
         <li>Results represent relative comparisons.</li>
         <li>The dashboard does not estimate the probability of ecosystem decline.</li>
         <li>Economic statistics are available only for sectors with suitable published data.</li>
@@ -122,8 +129,7 @@ export function createGlossaryMethodologyPage() {
           <div class="glossary-page-guide-content">
             <div class="glossary-ecosystem-services-layout">
               <div class="glossary-ecosystem-services-text">
-                <h5 class="glossary-keyterm-subtitle">Definition</h5>
-                <p>Ecosystem Services are the direct and indirect contributions ecosystems (known as natural capital) provide for human wellbeing and quality of life. <a href="https://www.nature.scot/scotlands-biodiversity/scottish-biodiversity-strategy/ecosystem-approach/ecosystem-services-natures-benefits" target="_blank" rel="noopener noreferrer">[1]</a></p>
+                <p>Ecosystem Services are the direct and indirect contributions ecosystems (known as natural capital) provided for human wellbeing and quality of life. <a href="https://www.nature.scot/scotlands-biodiversity/scottish-biodiversity-strategy/ecosystem-approach/ecosystem-services-natures-benefits" target="_blank" rel="noopener noreferrer">[1]</a></p>
                 <ul class="glossary-list">
                   <li><strong>Provisioning</strong> - these are tangible goods that people can harvest from the environment such as food, wood and fibre, water and fuel.</li>
                   <li><strong>Regulating</strong> - these are regulating services that occur in the ecosystem that lead to benefits such as climate regulation, flood management, and water filtration.</li>
@@ -142,10 +148,9 @@ export function createGlossaryMethodologyPage() {
         <section class="glossary-page-guide-row" role="listitem" aria-label="Nature Dependency definition">
           <div class="glossary-page-guide-bubble glossary-page-guide-bubble--wide">Nature Dependency</div>
           <div class="glossary-page-guide-content">
-            <h5 class="glossary-keyterm-subtitle">Definition</h5>
             <p>Nature dependency describes the extent to which a business relies on ecosystem services to operate, maintain functionality or generate value.</p>
             <h5 class="glossary-keyterm-subtitle">Dashboard calculation</h5>
-            <p>Dependency ratings are derived from the ENCORE framework and assigned according to each business's ISIC activity. Scores are calculated for individual ecosystem services and summarised to support comparison across businesses, sectors and locations.</p>
+            <p>Dependency scores are calculated by matching each business’s ISIC activity to the corresponding ENCORE sector and assigning the ecosystem service dependency ratings identified by ENCORE. Where multiple ecosystem services are relevant, individual service scores are aggregated to produce overall dependency metrics for each business.</p>
           </div>
         </section>
 
@@ -154,10 +159,11 @@ export function createGlossaryMethodologyPage() {
           <div class="glossary-page-guide-content">
             <div class="glossary-ecosystem-services-layout">
               <div class="glossary-ecosystem-services-text">
-                <h5 class="glossary-keyterm-subtitle">Definition</h5>
                 <p>Environmental pressure describes the ways in which business activities may contribute to the degradation or alteration of nature.</p>
                 <h5 class="glossary-keyterm-subtitle">Dashboard calculation</h5>
-                <p>Pressure ratings are derived from ENCORE and assigned according to each business's ISIC activity. They cover pressures such as land and water use, resource extraction, pollution, waste, emissions, invasive species and disturbance. Pressure scores are analysed separately from dependency scores.</p>
+                <p>Pressure scores are calculated by matching each business’s ISIC activity to ENCORE’s sector-level pressure pathways. Pressure ratings for individual environmental pressures are assigned to each business and aggregated to produce overall pressure metrics.</p>
+                <br><br>
+                <p><strong>Combined Score = Dependency Score + Pressure Score</strong></p>
               </div>
               <aside class="glossary-ecosystem-services-chart" aria-label="Environmental pressure proportions chart">
                 <h6 class="glossary-donut-title">Environmental Pressures of Scottish Businesses</h6>
@@ -170,9 +176,8 @@ export function createGlossaryMethodologyPage() {
         <section class="glossary-page-guide-row" role="listitem" aria-label="Business Vulnerability definition">
           <div class="glossary-page-guide-bubble glossary-page-guide-bubble--wide">Business Vulnerability</div>
           <div class="glossary-page-guide-content">
-            <h5 class="glossary-keyterm-subtitle">Definition</h5>
             <p>Business vulnerability represents the potential consequences for a business if an ecosystem service on which it depends declines or becomes unavailable. It describes the severity of possible disruption rather than the likelihood that disruption will occur.</p>
-            <p>Two dimensions are assessed:</p>
+            <p>Two consequences are assessed:</p>
             <ul class="glossary-list">
               <li><strong>Functional vulnerability:</strong> the potential loss of operational functionality.</li>
               <li><strong>Financial vulnerability:</strong> the potential financial cost of replacing, restoring or compensating for the affected ecosystem service.</li>
@@ -180,8 +185,8 @@ export function createGlossaryMethodologyPage() {
           </div>
         </section>
 
-        <section class="glossary-page-guide-row" role="listitem" aria-label="Vulnerability Calculations definition">
-          <div class="glossary-page-guide-bubble glossary-page-guide-bubble--wide">Vulnerability Calculations</div>
+        <section class="glossary-page-guide-row glossary-page-guide-row--no-divider" role="listitem" aria-label="Vulnerability Calculations definition">
+          <div class="glossary-page-guide-bubble glossary-page-guide-bubble--wide glossary-page-guide-bubble--plain">Vulnerability Calculations</div>
           <div class="glossary-page-guide-content">
             <p>Vulnerability is calculated separately for each ecosystem service by combining dependency and consequence through the dashboard formula:</p>
             <section class="glossary-equation-box" aria-label="Company Vulnerability equation">
@@ -191,13 +196,13 @@ export function createGlossaryMethodologyPage() {
             </section>
             <p>This weighting ensures that severe consequences receive greater importance where the business is also strongly dependent on the ecosystem service. Functional and financial vulnerability are retained as separate measures and may also be combined into an overall vulnerability indicator for comparative screening.</p>
             <p>The results represent relative sector-based vulnerability and should not be interpreted as predictions of company-specific losses.</p>
+            <p><strong>Combined Vulnerability</strong> combines the Financial Cost and Loss of Functionality vulnerability dimensions into a single indicator. Each dimension is first weighted by the business’s ecosystem service dependency before being aggregated, providing an overall measure of the potential consequences of nature-related disruption. Higher scores indicate businesses that are both more dependent on ecosystem services and more vulnerable to their degradation.</p>
           </div>
         </section>
 
         <section class="glossary-page-guide-row" role="listitem" aria-label="Economic Exposure definition">
           <div class="glossary-page-guide-bubble glossary-page-guide-bubble--wide">Economic Exposure</div>
           <div class="glossary-page-guide-content">
-            <h5 class="glossary-keyterm-subtitle">Definition</h5>
             <p>Economic exposure describes the scale of economic activity associated with sectors that may be vulnerable to ecosystem-service decline.</p>
             <h5 class="glossary-keyterm-subtitle">Dashboard calculation</h5>
             <section class="glossary-equation-box" aria-label="Economic Exposure Index equation">
@@ -251,6 +256,7 @@ export function createGlossaryMethodologyPage() {
 
   page.append(
     introductionSection,
+    audienceSection,
     dashboardPagesSection,
     keyTermsSection,
     dataSourcesSection,
