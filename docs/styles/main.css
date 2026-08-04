@@ -1435,22 +1435,30 @@ body {
 }
 
 .business-vulnerability-kpi-grid {
+  min-height: 800px;
   grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  align-content: stretch;
 }
 
 .business-vulnerability-kpi-card {
-  min-height: 128px;
+  min-height: 0;
+  height: 100%;
 }
 
 .business-vulnerability-kpi-card--primary {
   grid-column: span 1;
-  min-height: 176px;
   position: relative;
+}
+
+.business-vulnerability-kpi-row {
+  height: 100%;
 }
 
 .business-vulnerability-kpi-title-row {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px;
 }
@@ -1482,7 +1490,7 @@ body {
 
 .business-vulnerability-info-popover-shell {
   position: relative;
-  z-index: 1200;
+  z-index: 1;
 }
 
 .business-vulnerability-info-trigger {
@@ -1578,14 +1586,15 @@ body {
 }
 
 .business-vulnerability-kpi-value--primary {
-  font-size: 2rem;
-  line-height: 1.05;
+  font-size: 1.4rem;
+  line-height: 1.02;
 }
 
 .business-vulnerability-kpi-metric {
   color: #2e4441;
-  font-size: 0.86rem;
+  font-size: calc(0.86rem + 3px);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .business-vulnerability-kpi-subtitle {
@@ -1662,12 +1671,12 @@ body {
 }
 
 .business-vulnerability-overview-breakdown-mount {
-  margin-top: 8px;
+  margin-top: 2px;
 }
 
 .business-vulnerability-overview-breakdown {
   display: grid;
-  gap: 6px;
+  gap: 1px;
 }
 .dependency-total-service-shell {
   margin-top: 0;
@@ -1854,23 +1863,23 @@ body {
 .business-vulnerability-overview-breakdown-row {
   display: grid;
   grid-template-columns: minmax(150px, 1.6fr) minmax(0, 3fr) auto auto;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
 .business-vulnerability-overview-breakdown-label {
-  font-size: 0.78rem;
+  margin-top: 4px;
   font-weight: 600;
   color: #314947;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  gap: 2px;
 }
 
 .business-vulnerability-overview-breakdown-track {
   height: 10px;
   border-radius: 999px;
-  border: 1px solid #d7e3df;
+  gap: 4px;
   background: #f2f7f5;
   overflow: hidden;
 }
@@ -1893,7 +1902,7 @@ body {
 
 .business-vulnerability-overview-breakdown-value,
 .business-vulnerability-overview-breakdown-count {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #2e4441;
   font-variant-numeric: tabular-nums;
@@ -1908,6 +1917,8 @@ body {
 
 .business-vulnerability-filter-bar {
   padding: 12px 16px;
+  min-height: 253px;
+  display: flex;
 }
 
 .business-vulnerability-exposed-section {
@@ -1915,7 +1926,20 @@ body {
 }
 
 .business-vulnerability-filter-bar .global-filter-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 18px;
+}
+
+.business-vulnerability-filter-bar .global-filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.business-vulnerability-filter-bar .global-filter-label {
+  margin-bottom: 12px;
 }
 
 .business-vulnerability-map-panel {
@@ -1925,13 +1949,14 @@ body {
 }
 
 .business-vulnerability-map-panel .map-panel-shell {
-  flex: 1;
-  min-height: 0;
+  min-height: 700px;
+  display: flex;
+  flex-direction: column;
 }
 
 .business-vulnerability-map-panel .map-canvas {
-  min-height: 0;
-  height: 100%;
+  flex: 1;
+  min-height: 700px;
 }
 
 .business-vulnerability-profile-panel {
@@ -1940,6 +1965,10 @@ body {
 
 .business-vulnerability-profile-head {
   gap: 4px;
+}
+
+.business-vulnerability-profile-panel .business-vulnerability-filter-bar {
+  min-height: 0;
 }
 
 .business-vulnerability-profile-table-shell {
@@ -2301,7 +2330,7 @@ body {
   }
 
   .business-vulnerability-filter-bar .global-filter-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .business-vulnerability-kpi-grid {

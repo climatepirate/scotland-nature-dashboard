@@ -12,9 +12,9 @@ import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServi
 import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js?v=3";
 import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js?v=3";
 import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js?v=3";
-import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js";
-import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js";
-import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js";
+import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js?v=4";
+import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js?v=4";
+import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js?v=4";
 import { initNatureFinanceBubbleChart } from "./charts/natureFinanceBubbleChart.js?v=3";
 import { initNatureFinanceKpiCards } from "./charts/natureFinanceKpiCards.js?v=3";
 import { initNatureFinancePriorityPanel } from "./charts/natureFinancePriorityPanel.js?v=3";
@@ -28,8 +28,35 @@ const appShell = createDashboardAppShell(dashboardShell);
 appRoot.append(appShell.element);
 appShell.setPageFromHash();
 
+let businessVulnerabilityPageInitialized = false;
+const scheduleBusinessVulnerabilityPageInit = () => {
+	if (businessVulnerabilityPageInitialized) {
+		return;
+	}
+
+	businessVulnerabilityPageInitialized = true;
+	initBusinessVulnerabilitySummaryCards();
+	initBusinessVulnerabilityMap();
+	initBusinessVulnerabilityProfileTable();
+};
+
+const maybeInitBusinessVulnerabilityPage = () => {
+	const hashPageId = window.location.hash.replace(/^#/, "");
+	if (hashPageId !== "business-vulnerability" && hashPageId !== "pressures") {
+		return;
+	}
+
+	if (typeof window.requestIdleCallback === "function") {
+		window.requestIdleCallback(scheduleBusinessVulnerabilityPageInit, { timeout: 2000 });
+		return;
+	}
+
+	window.setTimeout(scheduleBusinessVulnerabilityPageInit, 0);
+};
+
 window.addEventListener("hashchange", () => {
 	appShell.setPageFromHash();
+	maybeInitBusinessVulnerabilityPage();
 });
 
 initDependencyRidgelineChart();
@@ -44,12 +71,11 @@ initEcosystemServicesCoarseScatterChart();
 initEcosystemServicesIsicScatterChart();
 initEcosystemServicesCompanyScatterChart();
 initEcosystemServicesSummaryRankingTable();
-initBusinessVulnerabilitySummaryCards();
-initBusinessVulnerabilityMap();
-initBusinessVulnerabilityProfileTable();
 initNatureFinanceBubbleChart();
 initNatureFinanceKpiCards();
 initNatureFinancePriorityPanel();
 initNatureFinancePriorityRankingTable();
 initEcosystemServicesDonutChart();
 initEnvironmentalPressuresDonutChart();
+
+maybeInitBusinessVulnerabilityPage();
