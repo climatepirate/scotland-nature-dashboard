@@ -2550,8 +2550,11 @@ body {
 
 .nature-finance-chart-slot {
   padding: 12px;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .nature-finance-chart-head {
@@ -2607,13 +2610,20 @@ body {
 }
 
 .nature-finance-bubble-chart {
-  min-height: 420px;
+  flex: 1 1 auto;
+  min-height: 620px;
+  height: 620px;
+  width: 100%;
   border: 1px solid #dbe4e0;
   border-radius: 10px;
   background: linear-gradient(180deg, #fcfefe 0%, #f8fbfa 100%);
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
   padding: 14px;
+  align-self: stretch;
 }
 
 .nature-finance-empty-state {
@@ -2622,15 +2632,25 @@ body {
   text-align: center;
 }
 
+.nature-finance-exposure-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .nature-finance-bubble-wrap {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   position: relative;
+  display: flex;
 }
 
 .nature-finance-bubble-svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  flex: 1 1 auto;
 }
 
 .nature-finance-grid-line {
@@ -2707,20 +2727,42 @@ body {
   line-height: 1.35;
 }
 
+.nature-finance-bubble-lower {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: stretch;
+  margin-top: 0;
+}
+
 .nature-finance-bubble-legend,
 .nature-finance-size-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 12px;
+  gap: 15px;
   align-items: center;
+  margin: 0;
 }
 
 .nature-finance-bubble-legend {
-  margin-top: 14px;
+  width: 100%;
+  justify-content: center;
 }
 
 .nature-finance-size-legend {
-  margin-top: 16px;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.nature-finance-size-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
 }
 
 .nature-finance-bubble-legend-item,
@@ -2743,9 +2785,9 @@ body {
 .nature-finance-size-legend-title {
   color: #3f5651;
   font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .nature-finance-size-legend-circle {
@@ -2829,10 +2871,15 @@ body {
 
 .nature-finance-lower-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
   margin-top: 12px;
+}
+
+.nature-finance-lower-row > .panel,
+.nature-finance-lower-row > .nature-finance-explanation-card {
+  width: 100%;
 }
 
 .nature-finance-explanation-body {
@@ -3030,6 +3077,8 @@ body {
   border-style: dashed;
   border-color: #c8d7d2;
   background: linear-gradient(180deg, #f9fcfb 0%, #f4f8f6 100%);
+  margin-top: 12px;
+  width: 100%;
 }
 
 .nature-finance-interpretation-body {
@@ -3117,6 +3166,7 @@ body {
 
 .nature-finance-priority-details {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 

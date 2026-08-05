@@ -110,7 +110,7 @@ function renderSizeLegend(container, rows, radiusFor) {
     `;
   }).join("");
 
-  container.innerHTML = `<div class="nature-finance-size-legend-title">Bubble size: employment</div>${items}`;
+  container.innerHTML = `<div class="nature-finance-size-legend-title">Bubble size: employment</div><div class="nature-finance-size-legend-items">${items}</div>`;
 }
 
 function renderChart(root, rows) {
@@ -125,26 +125,28 @@ function renderChart(root, rows) {
 
   const svg = createSvgEl("svg", {
     class: "nature-finance-bubble-svg",
-    viewBox: "0 0 860 420",
+    viewBox: "0 0 860 620",
     role: "img",
     "aria-label": "Bubble chart of Scottish annual output, normalised vulnerability and employment by ISIC sector",
   });
 
   const margin = { top: 34, right: 18, bottom: 62, left: 82 };
   const width = 860;
-  const height = 420;
+  const height = 620;
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
 
   const minOutput = Math.min(...rows.map((row) => row.annualOutputBn));
   const maxOutput = Math.max(...rows.map((row) => row.annualOutputBn));
+  const yMin = -5;
+  const yMax = 100;
 
   const xPad = Math.max(0.2, (maxOutput - minOutput) * 0.08);
   const xMin = minOutput - xPad;
   const xMax = maxOutput + xPad;
 
   const xScale = (value) => margin.left + ((value - xMin) / (xMax - xMin)) * plotWidth;
-  const yScale = (value) => margin.top + ((100 - value) / 100) * plotHeight;
+  const yScale = (value) => margin.top + ((yMax - value) / (yMax - yMin)) * plotHeight;
 
   const radiusFor = bubbleRadiusFactory(rows.map((row) => row.employmentFte));
 
@@ -233,10 +235,12 @@ function renderChart(root, rows) {
 
     svg.append(circle);
 
+    const labelLeft = shortSectorLabel(row.sectorLabel) === "Electricity & Gas";
     const label = createSvgEl("text", {
-      x: x + r + 6,
+      x: labelLeft ? x - r - 6 : x + r + 6,
       y: y - ((index % 2) * 10),
       class: "nature-finance-bubble-label",
+      "text-anchor": labelLeft ? "end" : "start",
     });
     label.textContent = shortSectorLabel(row.sectorLabel);
     svg.append(label);
@@ -277,8 +281,12 @@ function renderChart(root, rows) {
   sizeLegend.className = "nature-finance-size-legend";
   renderSizeLegend(sizeLegend, rows, radiusFor);
 
+  const lowerSection = document.createElement("div");
+  lowerSection.className = "nature-finance-bubble-lower";
+  lowerSection.append(legend, sizeLegend);
+
   wrap.append(svg, tooltip);
-  root.append(wrap, legend, sizeLegend);
+  root.append(wrap, lowerSection);
 }
 
 export function initNatureFinanceBubbleChart() {

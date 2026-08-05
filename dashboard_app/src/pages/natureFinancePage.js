@@ -537,17 +537,7 @@ export function createNatureFinancePage() {
       <h3 class="panel-title">Why is this sector a priority?</h3>
     </div>
     <div class="nature-finance-explanation-body">
-      <div class="nature-finance-selection-empty" id="nature-finance-selection-empty">Select a sector from the bubble chart or ranking table to see details.</div>
-      <div class="nature-finance-selection-block">
-        <div class="nature-finance-selection-label">Selected sector</div>
-        <div id="nature-finance-selected-sector-name" class="nature-finance-selection-value">&mdash;</div>
-      </div>
-      <div class="nature-finance-selection-block">
-        <div class="nature-finance-selection-label">Priority classification</div>
-        <div id="nature-finance-priority-score" class="nature-finance-selection-value">&mdash;</div>
-      </div>
-      <p id="nature-finance-priority-explainer" class="nature-finance-priority-explainer">This explanation will describe how vulnerability, economic activity and ecosystem-service dependencies combine for the selected sector.</p>
-      <div class="nature-finance-drivers-head">Priority evidence</div>
+      <div class="nature-finance-drivers-head">Priority Evidence - Filtered by Bubble Graph</div>
       <div id="nature-finance-drivers-bars" class="nature-finance-drivers-bars">
         <div class="nature-finance-empty-state">Sector evidence will appear here.</div>
       </div>
@@ -628,7 +618,7 @@ export function createNatureFinancePage() {
 
   const lowerRow = document.createElement("section");
   lowerRow.className = "nature-finance-lower-row";
-  lowerRow.append(explanationCard, interpretationPanel);
+  lowerRow.append(explanationCard);
 
   loadNatureFinanceSharedRows()
     .then((rows) => {
@@ -654,6 +644,6 @@ export function createNatureFinancePage() {
       }
     });
 
-  page.append(titleCard, kpiSection, analyticsRow, lowerRow, rankingCard);
+  page.append(titleCard, kpiSection, analyticsRow, lowerRow, rankingCard, interpretationPanel);
   return page;
 }
