@@ -1,22 +1,9 @@
+import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
 import { getState, subscribe } from "../state/state.js";
-import { loadMergedCompanyRows } from "../charts/sectorCompanyMasterAdapter.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 const ALL_ISIC = "All ISIC Sections";
-
-function getSectorFilters(state) {
-  return {
-    localAuthorityCode: state.sectorLocalAuthorityCode || ALL_SCOTLAND,
-    coarseCategory: state.sectorCoarseCategory || ALL_CATEGORIES,
-    isicSection: state.sectorIsicSection || ALL_ISIC,
-  };
-}
-
-function getSectorFilterKey(state) {
-  const filters = getSectorFilters(state);
-  return [filters.localAuthorityCode, filters.coarseCategory, filters.isicSection].join("|");
-}
 const PAGE_SIZE = 20;
 
 const ROW_MODE_OPTIONS = [
@@ -280,7 +267,7 @@ function buildItemCounts(records, keyField) {
       ? [...bucket.labels][0] || bucket.key
       : bucket.key,
     secondaryLabel: keyField === "companyId"
-      ? ""
+      ? ([...bucket.labels][0] && [...bucket.labels][0] !== bucket.key ? bucket.key : "")
       : `${bucket.itemCount.toLocaleString()} companies`,
     totalDependency: bucket.totalDependency,
     totalPressure: bucket.totalPressure,
@@ -295,32 +282,17 @@ function buildItemCounts(records, keyField) {
   }));
 }
 
-function buildCompanyRows(records) {
-  return records.map((record) => ({
-    key: record.companyId,
-    label: record.companyName || record.companyId,
-    secondaryLabel: "",
-    totalDependency: record.totalDependency,
-    totalPressure: record.totalPressure,
-    combinedScore: record.totalDependency + record.totalPressure,
-    serviceItems: (record.services || []).map((label) => ({ label, count: 1 })),
-    pressureItems: (record.pressures || []).map((label) => ({ label, count: 1 })),
-    itemCount: 1,
-  }));
-}
-
 function filterRecords(records, state) {
-  const filters = getSectorFilters(state);
   return records.filter((record) => {
-    if (filters.localAuthorityCode !== ALL_SCOTLAND && record.localAuthorityCode !== filters.localAuthorityCode) {
+    if (state.localAuthorityCode !== ALL_SCOTLAND && record.localAuthorityCode !== state.localAuthorityCode) {
       return false;
     }
 
-    if (filters.coarseCategory !== ALL_CATEGORIES && record.coarseCategory !== filters.coarseCategory) {
+    if (state.coarseCategory !== ALL_CATEGORIES && record.coarseCategory !== state.coarseCategory) {
       return false;
     }
 
-    if (filters.isicSection !== ALL_ISIC && record.isicSection !== filters.isicSection) {
+    if (state.isicSection !== ALL_ISIC && record.isicSection !== state.isicSection) {
       return false;
     }
 
@@ -390,18 +362,10 @@ function filterCompanyRowsBySearch(rows, searchTerm) {
   }
 
   return rows.filter((row) => {
-    const label = row.searchLabel || String(row.label || "").toLowerCase();
-    const secondary = row.searchSecondary || String(row.secondaryLabel || "").toLowerCase();
+    const label = String(row.label || "").toLowerCase();
+    const secondary = String(row.secondaryLabel || "").toLowerCase();
     return label.includes(searchTerm) || secondary.includes(searchTerm);
   });
-}
-
-function prepareSearchIndex(rows) {
-  rows.forEach((row) => {
-    row.searchLabel = String(row.label || "").toLowerCase();
-    row.searchSecondary = String(row.secondaryLabel || "").toLowerCase();
-  });
-  return rows;
 }
 
 function renderChipList(items) {
@@ -428,47 +392,6 @@ function renderChipList(items) {
     .join("")}</div>`;
 }
 
-function escapeCsvCell(value) {
-  const text = String(value ?? "");
-  if (!/[",\n]/.test(text)) {
-    return text;
-  }
-  return `"${text.replace(/"/g, '""')}"`;
-}
-
-function formatSummaryItemsForCsv(items) {
-  return items
-    .map((item) => (item.count > 1 ? `${item.label} (${item.count.toLocaleString()})` : item.label))
-    .join("; ");
-}
-
-function buildTableCsv(rows, rowMode) {
-  const firstColumnLabel = getRowModeLabel(rowMode);
-  const headers = [
-    firstColumnLabel,
-    "Total Dependency Score",
-    "Total Pressure Score",
-    "Most-depended on Ecosystem Services",
-    "Highest Environmental Pressures",
-  ];
-
-  const lines = [headers.map(escapeCsvCell).join(",")];
-  rows.forEach((row) => {
-    const services = formatSummaryItemsForCsv(getSummaryItems(row, rowMode, "services"));
-    const pressures = formatSummaryItemsForCsv(getSummaryItems(row, rowMode, "pressures"));
-    const values = [
-      row.label,
-      formatNumber(row.totalDependency, 0),
-      formatNumber(row.totalPressure, 0),
-      services,
-      pressures,
-    ];
-    lines.push(values.map(escapeCsvCell).join(","));
-  });
-
-  return `${lines.join("\n")}\n`;
-}
-
 function buildHeaderLabel(label, field, sortField, sortDirection) {
   if (field !== sortField) {
     return label;
@@ -484,7 +407,7 @@ function renderTableMarkup(rows, rowMode, sortField, sortDirection) {
     { field: "label", label: firstColumnLabel },
     { field: "totalDependency", label: "Total Dependency Score" },
     { field: "totalPressure", label: "Total Pressure Score" },
-    { field: "services", label: "Most-depended on Ecosystem Services" },
+    { field: "services", label: "Highest Ecosystem Services" },
     { field: "pressures", label: "Highest Environmental Pressures" },
   ];
 
@@ -504,10 +427,10 @@ function renderTableMarkup(rows, rowMode, sortField, sortDirection) {
         <tr>
           <th scope="row" class="ecosystem-services-summary-row-label">
             <span class="ecosystem-services-summary-row-title">${escapeHtml(row.label)}</span>
-            ${row.secondaryLabel ? `<span class="ecosystem-services-summary-row-subtitle">${escapeHtml(row.secondaryLabel)}</span>` : ""}
+            <span class="ecosystem-services-summary-row-subtitle">${escapeHtml(row.secondaryLabel)}</span>
           </th>
-          <td class="ecosystem-services-summary-number">${formatNumber(row.totalDependency, 0)}</td>
-          <td class="ecosystem-services-summary-number">${formatNumber(row.totalPressure, 0)}</td>
+          <td class="ecosystem-services-summary-number">${formatNumber(row.totalDependency, 2)}</td>
+          <td class="ecosystem-services-summary-number">${formatNumber(row.totalPressure, 2)}</td>
           <td class="ecosystem-services-summary-chip-cell">${renderChipList(getSummaryItems(row, rowMode, "services"))}</td>
           <td class="ecosystem-services-summary-chip-cell">${renderChipList(getSummaryItems(row, rowMode, "pressures"))}</td>
         </tr>
@@ -547,7 +470,7 @@ function createPaginationMarkup(totalRows, currentPage, totalPages, rowMode) {
   return `
     <div class="ecosystem-services-summary-pagination-bar">
       <button type="button" class="ecosystem-services-summary-pagination-button" data-page-step="-1" ${previousDisabled}>Previous</button>
-      <div class="ecosystem-services-summary-pagination-text">Showing ${startIndex.toLocaleString()}-${endIndex.toLocaleString()} of ${totalRows.toLocaleString()} companies | Page ${currentPage.toLocaleString()} of ${totalPages.toLocaleString()}</div>
+      <div class="ecosystem-services-summary-pagination-text">Showing ${startIndex.toLocaleString()}-${endIndex.toLocaleString()} of ${totalRows.toLocaleString()} companies</div>
       <button type="button" class="ecosystem-services-summary-pagination-button" data-page-step="1" ${nextDisabled}>Next</button>
     </div>
   `;
@@ -594,13 +517,7 @@ export function createEcosystemServicesSummaryRankingTableSection() {
     "Search companies",
   );
 
-  const downloadButton = document.createElement("button");
-  downloadButton.type = "button";
-  downloadButton.id = "ecosystem-services-summary-download";
-  downloadButton.className = "ecosystem-services-summary-pagination-button";
-  downloadButton.textContent = "Download CSV";
-
-  controls.append(rowsModeControl.field, rankControl.field, searchControl.field, downloadButton);
+  controls.append(rowsModeControl.field, rankControl.field, searchControl.field);
 
   const status = document.createElement("p");
   status.id = "ecosystem-services-summary-status";
@@ -636,7 +553,6 @@ export function initEcosystemServicesSummaryRankingTable() {
   const rankSelect = document.getElementById("ecosystem-services-summary-rank-by");
   const companySearchInput = document.getElementById("ecosystem-services-summary-company-search");
   const companySearchField = companySearchInput?.closest("label");
-  const downloadButton = document.getElementById("ecosystem-services-summary-download");
 
   if (!tableMount || !statusElement || !paginationElement || !rowModeSelect || !rankSelect) {
     return;
@@ -648,13 +564,6 @@ export function initEcosystemServicesSummaryRankingTable() {
   let sortDirection = getDefaultSortDirection(sortField);
   let companySearchTerm = normalizeSearchTerm(companySearchInput?.value);
   let renderQueued = false;
-  let downloadableRows = [];
-  let downloadableRowMode = rowModeSelect.value;
-  let lastComputedKey = "";
-  let renderedRows = [];
-  let renderedRowMode = rowModeSelect.value;
-  let renderedTotalRows = 0;
-  let renderedTotalPages = 1;
 
   const syncCompanySearchVisibility = () => {
     if (!companySearchField) {
@@ -669,65 +578,6 @@ export function initEcosystemServicesSummaryRankingTable() {
     statusElement.textContent = text;
   };
 
-  const computeRows = () => {
-    const state = getState();
-    const rowMode = rowModeSelect.value;
-    const filterKey = getSectorFilterKey(state);
-    const effectiveSearchTerm = rowMode === "company" ? companySearchTerm : "";
-    const computeKey = [
-      filterKey,
-      rowMode,
-      effectiveSearchTerm,
-      sortField,
-      sortDirection,
-      records.length,
-    ].join("||");
-
-    if (computeKey === lastComputedKey) {
-      return;
-    }
-
-    const filteredRecords = filterRecords(records, state);
-    const keyField = rowMode === "company"
-      ? "companyId"
-      : rowMode === "isic"
-        ? "isicSection"
-        : "coarseCategory";
-
-    const aggregatedRows = rowMode === "company"
-      ? buildCompanyRows(filteredRecords)
-      : buildItemCounts(filteredRecords, keyField);
-    const indexedRows = prepareSearchIndex(aggregatedRows);
-    const rowsToSort = rowMode === "company"
-      ? filterCompanyRowsBySearch(indexedRows, companySearchTerm)
-      : indexedRows;
-    const sortedRows = sortRows(rowsToSort, sortField, sortDirection);
-
-    downloadableRows = sortedRows;
-    downloadableRowMode = rowMode;
-    renderedRows = sortedRows;
-    renderedRowMode = rowMode;
-    renderedTotalRows = sortedRows.length;
-    renderedTotalPages = rowMode === "company" ? Math.max(1, Math.ceil(renderedTotalRows / PAGE_SIZE)) : 1;
-    lastComputedKey = computeKey;
-  };
-
-  const renderRows = () => {
-    if (renderedRowMode === "company") {
-      currentPage = Math.min(currentPage, renderedTotalPages);
-    } else {
-      currentPage = 1;
-    }
-
-    const pageRows = renderedRowMode === "company"
-      ? renderedRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-      : renderedRows;
-
-    setStatus(`${renderedTotalRows.toLocaleString()} ${getRowModeLabel(renderedRowMode).toLowerCase()} rows available under the current filters.`);
-    tableMount.innerHTML = renderTableMarkup(pageRows, renderedRowMode, sortField, sortDirection);
-    paginationElement.innerHTML = createPaginationMarkup(renderedTotalRows, currentPage, renderedTotalPages, renderedRowMode);
-  };
-
   const queueRender = () => {
     if (renderQueued) {
       return;
@@ -736,8 +586,36 @@ export function initEcosystemServicesSummaryRankingTable() {
     renderQueued = true;
     window.requestAnimationFrame(() => {
       renderQueued = false;
-      computeRows();
-      renderRows();
+      const state = getState();
+      const rowMode = rowModeSelect.value;
+      const filteredRecords = filterRecords(records, state);
+      const keyField = rowMode === "company"
+        ? "companyId"
+        : rowMode === "isic"
+          ? "isicSection"
+          : "coarseCategory";
+
+      const aggregatedRows = buildItemCounts(filteredRecords, keyField);
+      const rowsToSort = rowMode === "company"
+        ? filterCompanyRowsBySearch(aggregatedRows, companySearchTerm)
+        : aggregatedRows;
+      const sortedRows = sortRows(rowsToSort, sortField, sortDirection);
+      const totalRows = sortedRows.length;
+      const totalPages = rowMode === "company" ? Math.max(1, Math.ceil(totalRows / PAGE_SIZE)) : 1;
+
+      if (rowMode === "company") {
+        currentPage = Math.min(currentPage, totalPages);
+      } else {
+        currentPage = 1;
+      }
+
+      const pageRows = rowMode === "company"
+        ? sortedRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+        : sortedRows;
+
+      setStatus(`${totalRows.toLocaleString()} ${getRowModeLabel(rowMode).toLowerCase()} rows available under the current filters.`);
+      tableMount.innerHTML = renderTableMarkup(pageRows, rowMode, sortField, sortDirection);
+      paginationElement.innerHTML = createPaginationMarkup(totalRows, currentPage, totalPages, rowMode);
     });
   };
 
@@ -758,7 +636,6 @@ export function initEcosystemServicesSummaryRankingTable() {
 
   rowModeSelect.addEventListener("change", () => {
     currentPage = 1;
-    lastComputedKey = "";
     syncCompanySearchVisibility();
     queueRender();
   });
@@ -767,27 +644,7 @@ export function initEcosystemServicesSummaryRankingTable() {
     companySearchInput.addEventListener("input", (event) => {
       companySearchTerm = normalizeSearchTerm(event.target.value);
       currentPage = 1;
-      lastComputedKey = "";
       queueRender();
-    });
-  }
-
-  if (downloadButton) {
-    downloadButton.addEventListener("click", () => {
-      if (!downloadableRows.length) {
-        return;
-      }
-
-      const csv = buildTableCsv(downloadableRows, downloadableRowMode);
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `ecosystem-services-summary-${downloadableRowMode}.csv`;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
     });
   }
 
@@ -796,7 +653,6 @@ export function initEcosystemServicesSummaryRankingTable() {
     sortField = nextField;
     sortDirection = getDefaultSortDirection(nextField);
     currentPage = 1;
-    lastComputedKey = "";
     queueRender();
   });
 
@@ -817,7 +673,6 @@ export function initEcosystemServicesSummaryRankingTable() {
       }
 
       currentPage = 1;
-      lastComputedKey = "";
       queueRender();
       return;
     }
@@ -842,10 +697,14 @@ export function initEcosystemServicesSummaryRankingTable() {
     queueRender();
   });
 
-  loadMergedCompanyRows()
-    .then((mergedRows) => {
-      records = buildRecords(mergedRows);
-      lastComputedKey = "";
+  window.addEventListener("resize", () => {
+    queueRender();
+  });
+
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      records = buildRecords(compactRows);
       queueRender();
     })
     .catch((error) => {

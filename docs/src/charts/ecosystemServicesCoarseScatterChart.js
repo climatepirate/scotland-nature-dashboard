@@ -1,4 +1,9 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
+import { getState, subscribe } from "../state/state.js";
+
+const ALL_SCOTLAND = "All Scotland";
+const ALL_CATEGORIES = "All Categories";
+const ALL_ISIC = "All ISIC Sections";
 
 const COARSE_COLORS = {
   "Business & Property Services": "#6b6fae",
@@ -7,9 +12,6 @@ const COARSE_COLORS = {
   "Public & Community Services": "#6c9b57",
   Unclassified: "#8a8f99",
 };
-
-const SHARED_QUADRANT_EVENT = "ecosystem-services:isic-quadrants-updated";
-const SHARED_QUADRANT_KEY = "__ecosystemServicesIsicQuadrants";
 
 function parseCsvLine(line) {
   const values = [];
@@ -109,127 +111,104 @@ function formatNumber(value, digits = 2) {
   return Number(value).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
 }
 
-function buildLinearTicks(min, max, count = 5) {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) {
-    return [];
-  }
-  if (min === max) {
-    return [min];
-  }
-
-  const ticks = [];
-  for (let index = 0; index < count; index += 1) {
-    const ratio = count === 1 ? 0 : index / (count - 1);
-    ticks.push(min + ((max - min) * ratio));
-  }
-  return ticks;
-}
-
-function formatAxisTick(value) {
-  return Number(value).toLocaleString(undefined, {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: 0,
-  });
-}
-
 function getCoarseColor(name) {
   return COARSE_COLORS[name] || COARSE_COLORS.Unclassified;
 }
 
-function buildScoreLookup(scoreRows) {
-  const scoreByCompanyId = new Map();
-  scoreRows.forEach((row) => {
-    const companyId = String(row.company_id || "").trim();
-    if (!companyId) {
+function buildScatterRows(compactRows) {
+  const rows = [];
+  compactRows.forEach((row) => {
+    const coarseCategory = (row.coarse_category || "").trim();
+    const isicSection = (row.first_isic_section || "").trim();
+    const localAuthorityCode = (row.local_authority_code || "").trim();
+    const dep = Number.parseFloat(row.dep_score);
+    const press = Number.parseFloat(row.press_score);
+
+    if (!coarseCategory || coarseCategory === "Dormant Company") {
       return;
     }
 
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
     if (!Number.isFinite(dep) || !Number.isFinite(press)) {
       return;
     }
 
-    scoreByCompanyId.set(companyId, { dep, press });
+    rows.push({
+      coarseCategory,
+      isicSection,
+      localAuthorityCode,
+      dep,
+      press,
+    });
   });
-  return scoreByCompanyId;
+
+  return rows;
 }
 
-function buildCoarseModel(masterRows, scoreByCompanyId) {
-  const grouped = new Map();
-
-  masterRows.forEach((row) => {
-    const category = (row.coarse_category || row["Coarse Category"] || "").trim();
-
-    if (!category || category === "Dormant Company" || category === "Unclassified") {
-      return;
+function aggregateScatter(rows, state) {
+  const filtered = rows.filter((row) => {
+    if (state.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== state.localAuthorityCode) {
+      return false;
     }
-
-    const companyId = String(row.company_id || "").trim();
-    const score = scoreByCompanyId.get(companyId) || null;
-
-    if (!grouped.has(category)) {
-      grouped.set(category, {
-        category,
-        n: 0,
-        depValues: [],
-        pressValues: [],
-      });
+    if (state.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== state.coarseCategory) {
+      return false;
     }
-
-    const entry = grouped.get(category);
-    entry.n += 1;
-    if (score) {
-      entry.depValues.push(score.dep);
-      entry.pressValues.push(score.press);
+    if (state.isicSection !== ALL_ISIC && row.isicSection !== state.isicSection) {
+      return false;
     }
+    return true;
   });
 
-  const points = [...grouped.values()]
-    .map((entry) => ({
-      category: entry.category,
-      n: entry.n,
-      medianDep: median(entry.depValues),
-      medianPress: median(entry.pressValues),
+  const byCategory = new Map();
+  filtered.forEach((row) => {
+    if (!byCategory.has(row.coarseCategory)) {
+      byCategory.set(row.coarseCategory, { dep: [], press: [] });
+    }
+    const entry = byCategory.get(row.coarseCategory);
+    entry.dep.push(row.dep);
+    entry.press.push(row.press);
+  });
+
+  const points = [...byCategory.entries()]
+    .map(([category, values]) => ({
+      category,
+      medianDep: median(values.dep),
+      medianPress: median(values.press),
+      n: values.dep.length,
     }))
     .filter((point) => Number.isFinite(point.medianDep) && Number.isFinite(point.medianPress) && point.n > 0)
     .sort((a, b) => b.n - a.n || a.category.localeCompare(b.category));
 
-  const depValues = points.map((point) => point.medianDep);
-  const pressValues = points.map((point) => point.medianPress);
-  const axisStats = points.length
-    ? {
-      depMin: Math.min(...depValues),
-      depMax: Math.max(...depValues),
-      pressMin: Math.min(...pressValues),
-      pressMax: Math.max(...pressValues),
-      xMedian: median(depValues),
-      yMedian: median(pressValues),
-    }
-    : null;
-
   return {
     points,
-    totalCompanies: points.reduce((sum, point) => sum + point.n, 0),
-    axisStats,
+    filteredCount: filtered.length,
   };
 }
 
-function buildScatterSvg(points, width, height, axisStats, sharedQuadrants = null) {
-  const margin = { top: 22, right: 18, bottom: 68, left: 62 };
+function buildScatterSvg(points, width, height) {
+  const margin = { top: 22, right: 18, bottom: 54, left: 62 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
 
   const depValues = points.map((point) => point.medianDep);
   const pressValues = points.map((point) => point.medianPress);
 
-  const depMin = Number.isFinite(axisStats?.depMin) ? axisStats.depMin : Math.min(...depValues);
-  const depMax = Number.isFinite(axisStats?.depMax) ? axisStats.depMax : Math.max(...depValues);
-  const pressMin = Number.isFinite(axisStats?.pressMin) ? axisStats.pressMin : Math.min(...pressValues);
-  const pressMax = Number.isFinite(axisStats?.pressMax) ? axisStats.pressMax : Math.max(...pressValues);
+  const depMin = Math.min(...depValues);
+  const depMax = Math.max(...depValues);
+  const pressMin = Math.min(...pressValues);
+  const pressMax = Math.max(...pressValues);
 
-  const depRange = depMax - depMin;
-  const pressRange = pressMax - pressMin;
+  const xPad = Math.max(0.2, (depMax - depMin) * 0.15 || 0.6);
+  const yPad = Math.max(0.2, (pressMax - pressMin) * 0.15 || 0.6);
+
+  const xDomain = [depMin - xPad, depMax + xPad];
+  const yDomain = [pressMin - yPad, pressMax + yPad];
+
+  const xScale = (value) => margin.left + ((value - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
+  const yScale = (value) => margin.top + ((yDomain[1] - value) / (yDomain[1] - yDomain[0])) * plotHeight;
+
+  const xMedian = median(depValues);
+  const yMedian = median(pressValues);
+
   const nMin = Math.min(...points.map((point) => point.n));
   const nMax = Math.max(...points.map((point) => point.n));
   const radiusFor = (count) => {
@@ -239,46 +218,10 @@ function buildScatterSvg(points, width, height, axisStats, sharedQuadrants = nul
     const t = (count - nMin) / (nMax - nMin);
     return 9 + (t * 10);
   };
-  const maxRadius = Math.max(...points.map((point) => radiusFor(point.n)));
-  const domainXPadForRadius = ((maxRadius + 10) / Math.max(plotWidth, 1)) * (depRange || 1);
-  const domainYPadForRadius = ((maxRadius + 10) / Math.max(plotHeight, 1)) * (pressRange || 1);
-  const xPad = Math.max(0.24, (depRange || 1) * 0.14, domainXPadForRadius);
-  const yPad = Math.max(0.24, (pressRange || 1) * 0.14, domainYPadForRadius);
-
-  const xDomain = depRange > 0
-    ? [Math.max(0, depMin - xPad), depMax + xPad]
-    : [Math.max(0, depMin - 0.8), depMax + 0.8];
-  const yDomain = pressRange > 0
-    ? [Math.max(0, pressMin - yPad), pressMax + yPad]
-    : [Math.max(0, pressMin - 0.8), pressMax + 0.8];
-
-  const xScale = (value) => margin.left + ((value - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
-  const yScale = (value) => margin.top + ((yDomain[1] - value) / (yDomain[1] - yDomain[0])) * plotHeight;
-  const xTicks = buildLinearTicks(xDomain[0], xDomain[1], 5);
-  const yTicks = buildLinearTicks(yDomain[0], yDomain[1], 5);
-
-  const fallbackXMedian = Number.isFinite(axisStats?.xMedian) ? axisStats.xMedian : median(depValues);
-  const fallbackYMedian = Number.isFinite(axisStats?.yMedian) ? axisStats.yMedian : median(pressValues);
-  const xMedian = Number.isFinite(sharedQuadrants?.xMedian) ? sharedQuadrants.xMedian : fallbackXMedian;
-  const yMedian = Number.isFinite(sharedQuadrants?.yMedian) ? sharedQuadrants.yMedian : fallbackYMedian;
 
   const axisAndGrid = `
     <line x1="${margin.left}" y1="${margin.top + plotHeight}" x2="${margin.left + plotWidth}" y2="${margin.top + plotHeight}" class="scatter-axis-line" />
     <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotHeight}" class="scatter-axis-line" />
-    ${xTicks.map((tick) => {
-      const x = xScale(tick);
-      return `
-        <line x1="${x.toFixed(2)}" y1="${margin.top + plotHeight}" x2="${x.toFixed(2)}" y2="${margin.top + plotHeight + 6}" stroke="#8b9b98" stroke-width="1" />
-        <text x="${x.toFixed(2)}" y="${margin.top + plotHeight + 20}" text-anchor="middle" fill="#495957" font-size="11">${formatAxisTick(tick)}</text>
-      `;
-    }).join("")}
-    ${yTicks.map((tick) => {
-      const y = yScale(tick);
-      return `
-        <line x1="${margin.left - 6}" y1="${y.toFixed(2)}" x2="${margin.left}" y2="${y.toFixed(2)}" stroke="#8b9b98" stroke-width="1" />
-        <text x="${margin.left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end" fill="#495957" font-size="11">${formatAxisTick(tick)}</text>
-      `;
-    }).join("")}
     <line x1="${xScale(xMedian)}" y1="${margin.top}" x2="${xScale(xMedian)}" y2="${margin.top + plotHeight}" class="scatter-median-line" />
     <line x1="${margin.left}" y1="${yScale(yMedian)}" x2="${margin.left + plotWidth}" y2="${yScale(yMedian)}" class="scatter-median-line" />
   `;
@@ -300,23 +243,12 @@ function buildScatterSvg(points, width, height, axisStats, sharedQuadrants = nul
   }).join("");
 
   const axisLabels = `
-    <text x="${margin.left + (plotWidth / 2)}" y="${height - 30}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
+    <text x="${margin.left + (plotWidth / 2)}" y="${height - 14}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
     <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title scatter-axis-title--y">Median pressure score</text>
-  `;
-
-  const sizeLegend = `
-    <g aria-hidden="true">
-      <text x="${(margin.left + (plotWidth / 2) - 18).toFixed(2)}" y="${height - 8}" text-anchor="end" fill="#586967" font-size="10" font-weight="600">Point size = number of businesses (n)</text>
-      <circle cx="${(margin.left + (plotWidth / 2) + 18).toFixed(2)}" cy="${height - 11}" r="5" fill="#9db4af" stroke="#ffffff" stroke-width="1"></circle>
-      <text x="${(margin.left + (plotWidth / 2) + 30).toFixed(2)}" y="${height - 8}" fill="#586967" font-size="9">smaller n</text>
-      <circle cx="${(margin.left + (plotWidth / 2) + 98).toFixed(2)}" cy="${height - 11}" r="9" fill="#9db4af" stroke="#ffffff" stroke-width="1"></circle>
-      <text x="${(margin.left + (plotWidth / 2) + 113).toFixed(2)}" y="${height - 8}" fill="#586967" font-size="9">larger n</text>
-    </g>
   `;
 
   return `
     <svg viewBox="0 0 ${width} ${height}" class="ecosystem-scatter-svg" role="img" aria-label="Coarse category median dependency versus pressure scatter">
-      ${sizeLegend}
       ${axisAndGrid}
       ${bubbles}
       ${axisLabels}
@@ -332,24 +264,12 @@ export function initEcosystemServicesCoarseScatterChart() {
     return;
   }
 
-  let model = { points: [], totalCompanies: 0, axisStats: null };
+  let rows = [];
   let renderQueued = false;
   let tooltipEl = null;
-  let isDataLoaded = false;
 
   const setStatus = (text) => {
     statusElement.textContent = text;
-  };
-
-  const getSharedQuadrants = () => {
-    const shared = window[SHARED_QUADRANT_KEY];
-    if (!shared || !Number.isFinite(shared.xMedian) || !Number.isFinite(shared.yMedian)) {
-      return null;
-    }
-    return {
-      xMedian: shared.xMedian,
-      yMedian: shared.yMedian,
-    };
   };
 
   const hideTooltip = () => {
@@ -390,33 +310,31 @@ export function initEcosystemServicesCoarseScatterChart() {
     renderQueued = true;
     window.requestAnimationFrame(() => {
       renderQueued = false;
-      const points = model.points;
+      const state = getState();
+      const aggregated = aggregateScatter(rows, state);
+      const points = aggregated.points;
 
       if (!points.length) {
-        if (!isDataLoaded) {
-          chartRoot.innerHTML = '<div class="placeholder"><strong>Loading</strong>Preparing coarse category scatter…</div>';
-          setStatus("Loading coarse category scatter...");
-          return;
-        }
         chartRoot.innerHTML = '<div class="placeholder"><strong>No Results</strong>Adjust filters to view the coarse category scatter.</div>';
         setStatus("No categories available for the current filter combination.");
         return;
       }
 
       const width = Math.max(560, chartRoot.clientWidth || 0);
-      const height = 374;
-      chartRoot.innerHTML = buildScatterSvg(points, width, height, model.axisStats, getSharedQuadrants());
+      const height = 360;
+      chartRoot.innerHTML = buildScatterSvg(points, width, height);
 
       const r = computePearson(points);
       const rText = Number.isFinite(r) ? `Pearson r = ${formatNumber(r, 3)}` : "Pearson r unavailable";
-      setStatus(`${Math.round(model.totalCompanies).toLocaleString()} businesses represented across ${points.length} categories. ${rText}.`);
+      setStatus(`${aggregated.filteredCount.toLocaleString()} businesses represented across ${points.length} categories. ${rText}.`);
     });
   };
 
-  window.addEventListener("resize", () => {
+  subscribe(() => {
     queueRender();
   });
-  window.addEventListener(SHARED_QUADRANT_EVENT, () => {
+
+  window.addEventListener("resize", () => {
     queueRender();
   });
 
@@ -442,16 +360,10 @@ export function initEcosystemServicesCoarseScatterChart() {
     hideTooltip();
   });
 
-  Promise.all([
-    fetchDashboardDataText("dashboard_master.csv", "dashboard master"),
-    fetchDashboardDataText("company_integrated_profile.csv", "company integrated profile"),
-  ])
-    .then(([masterCsv, scoreCsv]) => {
-      const masterRows = parseTable(masterCsv);
-      const scoreRows = parseTable(scoreCsv);
-      const scoreByCompanyId = buildScoreLookup(scoreRows);
-      model = buildCoarseModel(masterRows, scoreByCompanyId);
-      isDataLoaded = true;
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const compactRows = parseTable(compactCsv);
+      rows = buildScatterRows(compactRows);
       queueRender();
     })
     .catch((error) => {

@@ -1,17 +1,11 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
+import { loadGlobalFilterData, globalFilterData } from "../config/globalFilterData.js";
 import { getState, subscribe, updateState } from "../state/state.js";
+import { emitGlobalFilterChange } from "../filters/globalMapFilter.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 const ALL_ISIC = "All ISIC Sections";
-
-function getSectorFilters(state) {
-  return {
-    localAuthorityCode: state.sectorLocalAuthorityCode || state.localAuthorityCode || ALL_SCOTLAND,
-    coarseCategory: state.sectorCoarseCategory || state.coarseCategory || ALL_CATEGORIES,
-    isicSection: state.sectorIsicSection || state.isicSection || ALL_ISIC,
-  };
-}
 
 const COARSE_COLORS = {
   "Business & Property Services": "#6b6fae",
@@ -100,16 +94,6 @@ function parseCompactRows(csvText) {
   return rows;
 }
 
-function parseMergedRows(rows) {
-  return rows
-    .map((row) => ({
-      localAuthorityCode: (row.local_authority_code || "").trim(),
-      coarseCategory: (row.coarse_category || "").trim(),
-      firstIsicSection: (row.first_isic_section || "").trim(),
-    }))
-    .filter((row) => row.localAuthorityCode && row.coarseCategory && row.firstIsicSection && row.coarseCategory !== "Dormant Company");
-}
-
 function formatCount(value) {
   return Number(value || 0).toLocaleString();
 }
@@ -136,17 +120,16 @@ function flowWeight(count) {
 }
 
 function aggregateSankey(rows, state) {
-  const filters = getSectorFilters(state);
   const filteredRows = rows.filter((row) => {
-    if (filters.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== filters.localAuthorityCode) {
+    if (state.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== state.localAuthorityCode) {
       return false;
     }
 
-    if (filters.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== filters.coarseCategory) {
+    if (state.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== state.coarseCategory) {
       return false;
     }
 
-    if (filters.isicSection !== ALL_ISIC && row.firstIsicSection !== filters.isicSection) {
+    if (state.isicSection !== ALL_ISIC && row.firstIsicSection !== state.isicSection) {
       return false;
     }
 
@@ -448,7 +431,6 @@ export function initEcosystemServicesSankeyChart() {
   let sourceRows = [];
   let renderQueued = false;
   let tooltipEl = null;
-  let isDataLoaded = false;
 
   const setStatus = (message) => {
     statusElement.textContent = message;
@@ -486,11 +468,6 @@ export function initEcosystemServicesSankeyChart() {
       const model = aggregateSankey(sourceRows, state);
 
       if (!model.totalCount || !model.leftNodes.length || !model.rightNodes.length) {
-        if (!isDataLoaded) {
-          chartRoot.innerHTML = '<div class="placeholder"><strong>Loading</strong>Preparing Sankey flow…</div>';
-          setStatus("Loading Sankey data...");
-          return;
-        }
         chartRoot.innerHTML = '<div class="placeholder"><strong>No Results</strong>Adjust filters to view the Sankey flow.</div>';
         setStatus("No businesses match the current filter combination.");
         return;
@@ -509,11 +486,11 @@ export function initEcosystemServicesSankeyChart() {
   };
 
   const syncFiltersFromState = () => {
-    const filters = getSectorFilters(getState());
+    const state = getState();
 
-    coarseSelect.value = filters.coarseCategory;
-    authoritySelect.value = filters.localAuthorityCode;
-    isicSelect.value = filters.isicSection;
+    coarseSelect.value = state.coarseCategory;
+    authoritySelect.value = state.localAuthorityCode;
+    isicSelect.value = state.isicSection;
 
     queueRender();
   };
@@ -523,20 +500,17 @@ export function initEcosystemServicesSankeyChart() {
     authoritySelect.innerHTML = "";
     isicSelect.innerHTML = "";
 
-    const categories = [...new Set(sourceRows.map((row) => row.coarseCategory))].sort((a, b) => a.localeCompare(b));
-    const authorityCodes = [...new Set(sourceRows.map((row) => row.localAuthorityCode))].sort((a, b) => a.localeCompare(b));
-    const isicSections = [...new Set(sourceRows.map((row) => row.firstIsicSection))].sort((a, b) => a.localeCompare(b));
-
     ensureOption(coarseSelect, ALL_CATEGORIES, ALL_CATEGORIES);
-    categories.forEach((category) => {
+    globalFilterData.coarseCategories.forEach((category) => {
       ensureOption(coarseSelect, category, category);
     });
 
     ensureOption(authoritySelect, ALL_SCOTLAND, ALL_SCOTLAND);
-    authorityCodes.forEach((code) => {
-      ensureOption(authoritySelect, code, code);
+    globalFilterData.localAuthorities.forEach((authority) => {
+      ensureOption(authoritySelect, authority.code, authority.name);
     });
 
+    const isicSections = [...new Set(sourceRows.map((row) => row.firstIsicSection))].sort((a, b) => a.localeCompare(b));
     ensureOption(isicSelect, ALL_ISIC, ALL_ISIC);
     isicSections.forEach((section) => {
       ensureOption(isicSelect, section, toIsicDisplayLabel(section));
@@ -546,23 +520,26 @@ export function initEcosystemServicesSankeyChart() {
   };
 
   coarseSelect.addEventListener("change", (event) => {
-    updateState({ sectorCoarseCategory: event.target.value || ALL_CATEGORIES });
+    const nextState = updateState({ coarseCategory: event.target.value || ALL_CATEGORIES });
+    emitGlobalFilterChange(nextState);
   });
 
   authoritySelect.addEventListener("change", (event) => {
-    updateState({ sectorLocalAuthorityCode: event.target.value || ALL_SCOTLAND });
+    const nextState = updateState({ localAuthorityCode: event.target.value || ALL_SCOTLAND });
+    emitGlobalFilterChange(nextState);
   });
 
   isicSelect.addEventListener("change", (event) => {
-    updateState({ sectorIsicSection: event.target.value || ALL_ISIC });
+    updateState({ isicSection: event.target.value || ALL_ISIC });
   });
 
   resetButton.addEventListener("click", () => {
-    updateState({
-      sectorLocalAuthorityCode: ALL_SCOTLAND,
-      sectorCoarseCategory: ALL_CATEGORIES,
-      sectorIsicSection: ALL_ISIC,
+    const nextState = updateState({
+      localAuthorityCode: ALL_SCOTLAND,
+      coarseCategory: ALL_CATEGORIES,
+      isicSection: ALL_ISIC,
     });
+    emitGlobalFilterChange(nextState);
   });
 
   subscribe(() => {
@@ -597,10 +574,12 @@ export function initEcosystemServicesSankeyChart() {
     hideTooltip();
   });
 
-  fetchDashboardDataText("dashboard_master.csv", "dashboard master")
-    .then((dashboardMasterCsv) => {
-      sourceRows = parseCompactRows(dashboardMasterCsv);
-      isDataLoaded = true;
+  Promise.all([
+    loadGlobalFilterData(),
+    fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact"),
+  ])
+    .then(([, csvText]) => {
+      sourceRows = parseCompactRows(csvText);
       populateFilterOptions();
     })
     .catch((error) => {
