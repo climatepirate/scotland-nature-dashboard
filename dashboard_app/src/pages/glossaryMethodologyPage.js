@@ -211,6 +211,7 @@ export function createGlossaryMethodologyPage() {
               </div>
             </section>
             <p>The calculation does not estimate an expected financial loss. Instead, it identifies where economically significant sectors also show relatively high nature-related vulnerability, helping prioritise areas for further investigation, policy engagement or more detailed assessment.</p>
+            <p><strong>Annual Output =</strong> Gross Value Added (GVA) at basic prices for each ISIC sector, sourced from Scottish Government regional economic statistics. Values are expressed in £ billions and represent the most recently available annual estimate for Scotland.</p>
           </div>
         </section>
       </div>
