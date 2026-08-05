@@ -1,9 +1,4 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
-import { getState, subscribe } from "../state/state.js";
-
-const ALL_SCOTLAND = "All Scotland";
-const ALL_CATEGORIES = "All Categories";
-const ALL_ISIC = "All ISIC Sections";
 
 const COARSE_COLORS = {
   "Business & Property Services": "#6b6fae",
@@ -12,6 +7,9 @@ const COARSE_COLORS = {
   "Public & Community Services": "#6c9b57",
   Unclassified: "#8a8f99",
 };
+
+const SHARED_QUADRANT_EVENT = "ecosystem-services:isic-quadrants-updated";
+const SHARED_QUADRANT_KEY = "__ecosystemServicesIsicQuadrants";
 
 function parseCsvLine(line) {
   const values = [];
@@ -109,6 +107,29 @@ function formatNumber(value, digits = 2) {
   });
 }
 
+function buildLinearTicks(min, max, count = 5) {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return [];
+  }
+  if (min === max) {
+    return [min];
+  }
+
+  const ticks = [];
+  for (let index = 0; index < count; index += 1) {
+    const ratio = count === 1 ? 0 : index / (count - 1);
+    ticks.push(min + ((max - min) * ratio));
+  }
+  return ticks;
+}
+
+function formatAxisTick(value) {
+  return Number(value).toLocaleString(undefined, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  });
+}
+
 function getCoarseColor(name) {
   return COARSE_COLORS[name] || COARSE_COLORS.Unclassified;
 }
@@ -123,83 +144,85 @@ function escapeHtml(value) {
 }
 
 function buildRows(compactRows) {
-  const rows = [];
-  compactRows.forEach((row) => {
-    const coarseCategory = (row.coarse_category || "Unclassified").trim();
-    const isicSection = (row.first_isic_section || "").trim();
-    const localAuthorityCode = (row.local_authority_code || "").trim();
-    const dep = Number.parseFloat(row.dep_score);
-    const press = Number.parseFloat(row.press_score);
-
-    if (!coarseCategory || coarseCategory === "Dormant Company" || !isicSection) {
-      return;
-    }
-
-    if (!Number.isFinite(dep) || !Number.isFinite(press)) {
-      return;
-    }
-
-    rows.push({
-      coarseCategory,
-      isicSection,
-      localAuthorityCode,
-      dep,
-      press,
-    });
-  });
-
-  return rows;
+  return compactRows
+    .map((row) => {
+      const coarseCategory = (row.coarse_category || row["Coarse Category"] || "").trim();
+      const isicSection = (row.first_isic_section || row["ISIC Section"] || "").trim();
+      const dep = Number.parseFloat(row.dep_score);
+      const press = Number.parseFloat(row.press_score);
+      return {
+        coarseCategory,
+        isicSection,
+        dep: Number.isFinite(dep) ? dep : null,
+        press: Number.isFinite(press) ? press : null,
+      };
+    })
+    .filter((row) => row.coarseCategory
+      && row.coarseCategory !== "Dormant Company"
+      && row.coarseCategory !== "Unclassified"
+      && row.isicSection);
 }
 
-function aggregate(rows, state) {
-  const filtered = rows.filter((row) => {
-    if (state.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== state.localAuthorityCode) {
-      return false;
-    }
-    if (state.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== state.coarseCategory) {
-      return false;
-    }
-    if (state.isicSection !== ALL_ISIC && row.isicSection !== state.isicSection) {
-      return false;
-    }
-    return true;
-  });
-
+function aggregate(rows) {
   const grouped = new Map();
-  filtered.forEach((row) => {
+  const scoredDepValues = [];
+  const scoredPressValues = [];
+  rows.forEach((row) => {
     const key = `${row.coarseCategory}||${row.isicSection}`;
     if (!grouped.has(key)) {
       grouped.set(key, {
         coarseCategory: row.coarseCategory,
         isicSection: row.isicSection,
+        total: 0,
         dep: [],
         press: [],
       });
     }
     const bucket = grouped.get(key);
-    bucket.dep.push(row.dep);
-    bucket.press.push(row.press);
+    bucket.total += 1;
+    if (Number.isFinite(row.dep) && Number.isFinite(row.press)) {
+      bucket.dep.push(row.dep);
+      bucket.press.push(row.press);
+      scoredDepValues.push(row.dep);
+      scoredPressValues.push(row.press);
+    }
   });
+
+  const globalDepMedian = median(scoredDepValues);
+  const globalPressMedian = median(scoredPressValues);
 
   const points = [...grouped.values()]
     .map((bucket) => ({
       coarseCategory: bucket.coarseCategory,
       isicSection: bucket.isicSection,
-      medianDep: median(bucket.dep),
-      medianPress: median(bucket.press),
-      n: bucket.dep.length,
+      medianDep: bucket.dep.length ? median(bucket.dep) : globalDepMedian,
+      medianPress: bucket.press.length ? median(bucket.press) : globalPressMedian,
+      n: bucket.total,
     }))
     .filter((point) => Number.isFinite(point.medianDep) && Number.isFinite(point.medianPress) && point.n > 0)
     .sort((a, b) => b.n - a.n || a.isicSection.localeCompare(b.isicSection));
 
+  const axisStats = points.length
+    ? {
+      depMin: Math.min(...points.map((point) => point.medianDep)),
+      depMax: Math.max(...points.map((point) => point.medianDep)),
+      pressMin: Math.min(...points.map((point) => point.medianPress)),
+      pressMax: Math.max(...points.map((point) => point.medianPress)),
+      xMedian: median(points.map((point) => point.medianDep)),
+      yMedian: median(points.map((point) => point.medianPress)),
+    }
+    : null;
+
   return {
     points,
-    filteredCount: filtered.length,
+    filteredCount: rows.length,
+    scoredCount: scoredDepValues.length,
+    axisStats,
   };
 }
 
-function buildSvg(points, width, height) {
-  const margin = { top: 20, right: 18, bottom: 54, left: 62 };
+function buildSvg(points, width, height, axisStats, sharedQuadrants = null) {
+  const margin = { top: 20, right: 18, bottom: 68, left: 62 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
 
@@ -211,17 +234,27 @@ function buildSvg(points, width, height) {
   const pressMin = Math.min(...pressValues);
   const pressMax = Math.max(...pressValues);
 
-  const xPad = Math.max(0.2, (depMax - depMin) * 0.12 || 0.7);
-  const yPad = Math.max(0.2, (pressMax - pressMin) * 0.12 || 0.7);
+  const depRange = depMax - depMin;
+  const pressRange = pressMax - pressMin;
+  const xPad = Math.max(0.2, (depRange || 1) * 0.12);
+  const yPad = Math.max(0.2, (pressRange || 1) * 0.12);
 
-  const xDomain = [depMin - xPad, depMax + xPad];
-  const yDomain = [pressMin - yPad, pressMax + yPad];
+  const xDomain = depRange > 0
+    ? [Math.max(0, depMin - (xPad * 0.45)), depMax + xPad]
+    : [Math.max(0, depMin - 0.6), depMax + 0.6];
+  const yDomain = pressRange > 0
+    ? [Math.max(0, pressMin - (yPad * 0.45)), pressMax + yPad]
+    : [Math.max(0, pressMin - 0.6), pressMax + 0.6];
 
   const xScale = (value) => margin.left + ((value - xDomain[0]) / (xDomain[1] - xDomain[0])) * plotWidth;
   const yScale = (value) => margin.top + ((yDomain[1] - value) / (yDomain[1] - yDomain[0])) * plotHeight;
+  const xTicks = buildLinearTicks(xDomain[0], xDomain[1], 5);
+  const yTicks = buildLinearTicks(yDomain[0], yDomain[1], 5);
 
-  const xMedian = median(depValues);
-  const yMedian = median(pressValues);
+  const fallbackXMedian = Number.isFinite(axisStats?.xMedian) ? axisStats.xMedian : median(depValues);
+  const fallbackYMedian = Number.isFinite(axisStats?.yMedian) ? axisStats.yMedian : median(pressValues);
+  const xMedian = Number.isFinite(sharedQuadrants?.xMedian) ? sharedQuadrants.xMedian : fallbackXMedian;
+  const yMedian = Number.isFinite(sharedQuadrants?.yMedian) ? sharedQuadrants.yMedian : fallbackYMedian;
 
   const nMin = Math.min(...points.map((point) => point.n));
   const nMax = Math.max(...points.map((point) => point.n));
@@ -236,9 +269,23 @@ function buildSvg(points, width, height) {
   const axisAndQuadrants = `
     <line x1="${margin.left}" y1="${margin.top + plotHeight}" x2="${margin.left + plotWidth}" y2="${margin.top + plotHeight}" class="scatter-axis-line" />
     <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotHeight}" class="scatter-axis-line" />
+    ${xTicks.map((tick) => {
+      const x = xScale(tick);
+      return `
+        <line x1="${x.toFixed(2)}" y1="${margin.top + plotHeight}" x2="${x.toFixed(2)}" y2="${margin.top + plotHeight + 6}" stroke="#8b9b98" stroke-width="1" />
+        <text x="${x.toFixed(2)}" y="${margin.top + plotHeight + 20}" text-anchor="middle" fill="#495957" font-size="11">${formatAxisTick(tick)}</text>
+      `;
+    }).join("")}
+    ${yTicks.map((tick) => {
+      const y = yScale(tick);
+      return `
+        <line x1="${margin.left - 6}" y1="${y.toFixed(2)}" x2="${margin.left}" y2="${y.toFixed(2)}" stroke="#8b9b98" stroke-width="1" />
+        <text x="${margin.left - 10}" y="${(y + 4).toFixed(2)}" text-anchor="end" fill="#495957" font-size="11">${formatAxisTick(tick)}</text>
+      `;
+    }).join("")}
     <line x1="${xScale(xMedian)}" y1="${margin.top}" x2="${xScale(xMedian)}" y2="${margin.top + plotHeight}" class="scatter-median-line" />
     <line x1="${margin.left}" y1="${yScale(yMedian)}" x2="${margin.left + plotWidth}" y2="${yScale(yMedian)}" class="scatter-median-line" />
-    <text x="${(xScale(xMedian) + 10).toFixed(2)}" y="${(yScale(yMedian) - 10).toFixed(2)}" class="scatter-quadrant-label">High dep / high press</text>
+    <text x="${(xScale(xMedian) + 90).toFixed(2)}" y="${(yScale(yMedian) - 10).toFixed(2)}" class="scatter-quadrant-label">High dep / high press</text>
   `;
 
   const pointsMarkup = points.map((point, index) => {
@@ -261,18 +308,28 @@ function buildSvg(points, width, height) {
           data-dep="${formatNumber(point.medianDep)}"
           data-press="${formatNumber(point.medianPress)}"
         ></circle>
-        <title>${point.isicSection} (${point.coarseCategory}): n=${point.n}, median dependency=${formatNumber(point.medianDep)}, median pressure=${formatNumber(point.medianPress)}</title>
       </g>
     `;
   }).join("");
 
   const axisLabels = `
-    <text x="${margin.left + (plotWidth / 2)}" y="${height - 14}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
+    <text x="${margin.left + (plotWidth / 2)}" y="${height - 30}" class="scatter-axis-title scatter-axis-title--x">Median dependency score</text>
     <text x="18" y="${margin.top + (plotHeight / 2)}" transform="rotate(-90, 18, ${margin.top + (plotHeight / 2)})" class="scatter-axis-title scatter-axis-title--y">Median pressure score</text>
+  `;
+
+  const sizeLegend = `
+    <g aria-hidden="true">
+      <text x="${(margin.left + (plotWidth / 2) - 18).toFixed(2)}" y="${height - 8}" text-anchor="end" fill="#586967" font-size="10" font-weight="600">Point size = number of businesses (n)</text>
+      <circle cx="${(margin.left + (plotWidth / 2) + 18).toFixed(2)}" cy="${height - 11}" r="5" fill="#9db4af" stroke="#ffffff" stroke-width="1"></circle>
+      <text x="${(margin.left + (plotWidth / 2) + 30).toFixed(2)}" y="${height - 8}" fill="#586967" font-size="9">smaller n</text>
+      <circle cx="${(margin.left + (plotWidth / 2) + 98).toFixed(2)}" cy="${height - 11}" r="9" fill="#9db4af" stroke="#ffffff" stroke-width="1"></circle>
+      <text x="${(margin.left + (plotWidth / 2) + 113).toFixed(2)}" y="${height - 8}" fill="#586967" font-size="9">larger n</text>
+    </g>
   `;
 
   return `
     <svg viewBox="0 0 ${width} ${height}" class="ecosystem-scatter-svg" role="img" aria-label="ISIC section median dependency versus pressure scatter">
+      ${sizeLegend}
       ${axisAndQuadrants}
       ${pointsMarkup}
       ${axisLabels}
@@ -292,9 +349,21 @@ export function initEcosystemServicesIsicScatterChart() {
   let renderQueued = false;
   let hoverBound = false;
   let tooltipEl = null;
+  let isDataLoaded = false;
 
   const setStatus = (text) => {
     statusElement.textContent = text;
+  };
+
+  const getSharedQuadrants = () => {
+    const shared = window[SHARED_QUADRANT_KEY];
+    if (!shared || !Number.isFinite(shared.xMedian) || !Number.isFinite(shared.yMedian)) {
+      return null;
+    }
+    return {
+      xMedian: shared.xMedian,
+      yMedian: shared.yMedian,
+    };
   };
 
   const hideTooltip = () => {
@@ -347,11 +416,29 @@ export function initEcosystemServicesIsicScatterChart() {
       const n = target.getAttribute("data-n") || "";
       const dep = target.getAttribute("data-dep") || "";
       const press = target.getAttribute("data-press") || "";
+      const isAgriculturePoint = isic.toLowerCase().startsWith("agriculture");
 
       tooltip.innerHTML = `<div><strong>${isic}</strong></div><div>${coarse}</div><div>n: ${n} | dep: ${dep} | press: ${press}</div>`;
       tooltip.style.display = "block";
-      tooltip.style.left = `${event.clientX + 14}px`;
-      tooltip.style.top = `${event.clientY + 14}px`;
+      const offset = 14;
+      const viewportPadding = 8;
+      const tooltipWidth = tooltip.offsetWidth || 260;
+      const tooltipHeight = tooltip.offsetHeight || 72;
+      const preferredLeft = isAgriculturePoint
+        ? (event.clientX - tooltipWidth - offset)
+        : (event.clientX + offset);
+      const boundedLeft = Math.max(
+        viewportPadding,
+        Math.min(preferredLeft, window.innerWidth - tooltipWidth - viewportPadding),
+      );
+      const preferredTop = event.clientY + offset;
+      const boundedTop = Math.max(
+        viewportPadding,
+        Math.min(preferredTop, window.innerHeight - tooltipHeight - viewportPadding),
+      );
+
+      tooltip.style.left = `${boundedLeft}px`;
+      tooltip.style.top = `${boundedTop}px`;
     });
 
     chartRoot.addEventListener("pointerleave", () => {
@@ -367,32 +454,35 @@ export function initEcosystemServicesIsicScatterChart() {
     renderQueued = true;
     window.requestAnimationFrame(() => {
       renderQueued = false;
-      const state = getState();
-      const aggregated = aggregate(rows, state);
-      const points = aggregated.points;
+      const aggregated = aggregate(rows);
+      const chartPoints = aggregated.points;
 
-      if (!points.length) {
+      if (!chartPoints.length) {
+        if (!isDataLoaded) {
+          chartRoot.innerHTML = '<div class="placeholder"><strong>Loading</strong>Preparing ISIC scatter…</div>';
+          setStatus("Loading ISIC scatter...");
+          return;
+        }
         chartRoot.innerHTML = '<div class="placeholder"><strong>No Results</strong>Adjust filters to view the ISIC section scatter.</div>';
         setStatus("No ISIC sections available for the current filter combination.");
         return;
       }
 
       const width = Math.max(560, chartRoot.clientWidth || 0);
-      const height = 360;
-      chartRoot.innerHTML = buildSvg(points, width, height);
+      const height = 374;
+      chartRoot.innerHTML = buildSvg(chartPoints, width, height, aggregated.axisStats, getSharedQuadrants());
       bindHoverHandlers();
 
-      const r = computePearson(points);
+      const r = computePearson(chartPoints);
       const rText = Number.isFinite(r) ? `Pearson r = ${formatNumber(r, 3)}` : "Pearson r unavailable";
-      setStatus(`${aggregated.filteredCount.toLocaleString()} businesses represented across ${points.length} ISIC sections. ${rText}.`);
+      setStatus(`${aggregated.filteredCount.toLocaleString()} businesses represented across ${chartPoints.length} ISIC sections. ${rText}.`);
     });
   };
 
-  subscribe(() => {
+  window.addEventListener("resize", () => {
     queueRender();
   });
-
-  window.addEventListener("resize", () => {
+  window.addEventListener(SHARED_QUADRANT_EVENT, () => {
     queueRender();
   });
 
@@ -400,6 +490,7 @@ export function initEcosystemServicesIsicScatterChart() {
     .then((compactCsv) => {
       const compactRows = parseTable(compactCsv);
       rows = buildRows(compactRows);
+      isDataLoaded = true;
       queueRender();
     })
     .catch((error) => {
