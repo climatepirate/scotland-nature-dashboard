@@ -842,7 +842,7 @@ export function initEcosystemServicesSummaryRankingTable() {
     queueRender();
   });
 
-  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+  fetchDashboardDataText("dashboard_scatter_compact.csv", "dashboard scatter compact")
     .then((compactCsv) => {
       records = buildRecords(parseTable(compactCsv));
       lastComputedKey = "";
