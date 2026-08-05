@@ -1,5 +1,4 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
-import { loadMergedCompanyRows } from "./sectorCompanyMasterAdapter.js";
  
 
 const DEFAULT_COARSE_CATEGORY = "Primary & Resource Industries";
@@ -843,10 +842,9 @@ export function initEcosystemServicesCompanyScatterChart() {
     tooltipMode = null;
   });
 
-  Promise.all([
-    loadMergedCompanyRows(),
-  ])
-    .then(([mergedRows]) => {
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      const mergedRows = parseTable(compactCsv);
       allRows = buildRows(mergedRows);
       isDataLoaded = true;
       rebuildCoarseIndexes();

@@ -1,5 +1,5 @@
 import { getState, subscribe } from "../state/state.js";
-import { loadMergedCompanyRows } from "../charts/sectorCompanyMasterAdapter.js";
+import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
@@ -842,9 +842,9 @@ export function initEcosystemServicesSummaryRankingTable() {
     queueRender();
   });
 
-  loadMergedCompanyRows()
-    .then((mergedRows) => {
-      records = buildRecords(mergedRows);
+  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+    .then((compactCsv) => {
+      records = buildRecords(parseTable(compactCsv));
       lastComputedKey = "";
       queueRender();
     })
