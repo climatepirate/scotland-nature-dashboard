@@ -597,6 +597,11 @@ export function initEcosystemServicesSankeyChart() {
     hideTooltip();
   });
 
+  if (typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(() => { queueRender(); });
+    ro.observe(chartRoot);
+  }
+
   fetchDashboardDataText("dashboard_master.csv", "dashboard master")
     .then((dashboardMasterCsv) => {
       sourceRows = parseCompactRows(dashboardMasterCsv);
