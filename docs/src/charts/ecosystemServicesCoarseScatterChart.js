@@ -423,7 +423,7 @@ export function initEcosystemServicesCoarseScatterChart() {
     hideTooltip();
   });
 
-  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+  fetchDashboardDataText("dashboard_scatter_compact.csv", "dashboard scatter compact")
     .then((compactCsv) => {
       const compactRows = parseTable(compactCsv);
       model = buildCoarseModel(compactRows);

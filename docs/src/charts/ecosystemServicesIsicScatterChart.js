@@ -486,7 +486,7 @@ export function initEcosystemServicesIsicScatterChart() {
     queueRender();
   });
 
-  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
+  fetchDashboardDataText("dashboard_scatter_compact.csv", "dashboard scatter compact")
     .then((compactCsv) => {
       const compactRows = parseTable(compactCsv);
       rows = buildRows(compactRows);
