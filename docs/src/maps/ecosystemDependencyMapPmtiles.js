@@ -4,6 +4,7 @@ import { getState, subscribe, updateState } from "../state/state.js";
 import {
   ensurePmtilesProtocolRegistered,
   loadMapLibrePmtilesAssets,
+  addRecenterControl,
   escapeHtml,
   firstDefinedValue,
   formatNumericValue,
@@ -347,13 +348,20 @@ export async function initEcosystemDependencyMapPmtiles() {
     container,
     style: buildMapStyle(),
     center: [-4.3, 56.7],
-    zoom: 6,
+    zoom: 5.7,
     minZoom: 5,
     maxZoom: 12,
     attributionControl: false,
     interactive: true,
   });
   container._ecosystemDependencyPmtilesMap = map;
+
+  addRecenterControl(map, maplibregl, {
+    center: [-4.3, 56.7],
+    zoom: 5.7,
+    bearing: 0,
+    pitch: 0,
+  });
 
   const legend = createLegendElement(container);
   let disposeLegendToggle = null;

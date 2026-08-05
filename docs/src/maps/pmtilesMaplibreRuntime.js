@@ -46,6 +46,50 @@ export function ensurePmtilesProtocolRegistered(maplibregl, pmtiles) {
   }
 }
 
+// Add a reusable button control to restore the original camera position.
+export function addRecenterControl(map, maplibregl, initialView) {
+  if (!map || !maplibregl || !initialView) {
+    return;
+  }
+
+  class RecenterControl {
+    onAdd() {
+      const container = document.createElement("div");
+      container.className = "maplibregl-ctrl maplibregl-ctrl-group";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "map-recenter-control-button";
+      button.textContent = "Re-centre";
+      button.setAttribute("aria-label", "Re-centre map");
+
+      button.addEventListener("click", () => {
+        map.easeTo({
+          center: initialView.center,
+          zoom: initialView.zoom,
+          bearing: initialView.bearing || 0,
+          pitch: initialView.pitch || 0,
+          duration: 700,
+          essential: true,
+        });
+      });
+
+      container.append(button);
+      this._container = container;
+      this._button = button;
+      return container;
+    }
+
+    onRemove() {
+      this._button = null;
+      this._container?.remove();
+      this._container = null;
+    }
+  }
+
+  map.addControl(new RecenterControl(), "top-right");
+}
+
 // ============================================
 // GENERIC DATA FORMATTING UTILITIES
 // ============================================

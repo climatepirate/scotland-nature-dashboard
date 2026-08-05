@@ -14,12 +14,17 @@ section.innerHTML = `
       </p>
     </div>
 
-    <div class="header-logos header-logos--single">
+    <div class="header-logos">
       
      <img
         src="./Images/efi-logo-black.png"
         alt="University of Edinburgh"
         class="header-logo"
+      >
+    <img
+        src="./Images/scot_gov_logo.jpg"
+        alt="Scottish Government"
+        class="header-logo-large"
       >
     </div>
   </div>

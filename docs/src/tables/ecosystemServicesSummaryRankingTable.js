@@ -4,15 +4,20 @@ import { loadMergedCompanyRows } from "../charts/sectorCompanyMasterAdapter.js";
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 const ALL_ISIC = "All ISIC Sections";
-const PAGE_SIZE = 20;
 
-function getFilterStateKey(state) {
-  return [
-    state.localAuthorityCode || ALL_SCOTLAND,
-    state.coarseCategory || ALL_CATEGORIES,
-    state.isicSection || ALL_ISIC,
-  ].join("|");
+function getSectorFilters(state) {
+  return {
+    localAuthorityCode: state.sectorLocalAuthorityCode || ALL_SCOTLAND,
+    coarseCategory: state.sectorCoarseCategory || ALL_CATEGORIES,
+    isicSection: state.sectorIsicSection || ALL_ISIC,
+  };
 }
+
+function getSectorFilterKey(state) {
+  const filters = getSectorFilters(state);
+  return [filters.localAuthorityCode, filters.coarseCategory, filters.isicSection].join("|");
+}
+const PAGE_SIZE = 20;
 
 const ROW_MODE_OPTIONS = [
   { value: "company", label: "Company" },
@@ -305,16 +310,17 @@ function buildCompanyRows(records) {
 }
 
 function filterRecords(records, state) {
+  const filters = getSectorFilters(state);
   return records.filter((record) => {
-    if (state.localAuthorityCode !== ALL_SCOTLAND && record.localAuthorityCode !== state.localAuthorityCode) {
+    if (filters.localAuthorityCode !== ALL_SCOTLAND && record.localAuthorityCode !== filters.localAuthorityCode) {
       return false;
     }
 
-    if (state.coarseCategory !== ALL_CATEGORIES && record.coarseCategory !== state.coarseCategory) {
+    if (filters.coarseCategory !== ALL_CATEGORIES && record.coarseCategory !== filters.coarseCategory) {
       return false;
     }
 
-    if (state.isicSection !== ALL_ISIC && record.isicSection !== state.isicSection) {
+    if (filters.isicSection !== ALL_ISIC && record.isicSection !== filters.isicSection) {
       return false;
     }
 
@@ -666,7 +672,7 @@ export function initEcosystemServicesSummaryRankingTable() {
   const computeRows = () => {
     const state = getState();
     const rowMode = rowModeSelect.value;
-    const filterKey = getFilterStateKey(state);
+    const filterKey = getSectorFilterKey(state);
     const effectiveSearchTerm = rowMode === "company" ? companySearchTerm : "";
     const computeKey = [
       filterKey,

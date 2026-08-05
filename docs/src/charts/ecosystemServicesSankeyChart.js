@@ -1,10 +1,17 @@
 import { fetchDashboardDataText } from "../config/dataAssetLoader.js";
 import { getState, subscribe, updateState } from "../state/state.js";
-import { emitGlobalFilterChange } from "../filters/globalMapFilter.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
 const ALL_ISIC = "All ISIC Sections";
+
+function getSectorFilters(state) {
+  return {
+    localAuthorityCode: state.sectorLocalAuthorityCode || state.localAuthorityCode || ALL_SCOTLAND,
+    coarseCategory: state.sectorCoarseCategory || state.coarseCategory || ALL_CATEGORIES,
+    isicSection: state.sectorIsicSection || state.isicSection || ALL_ISIC,
+  };
+}
 
 const COARSE_COLORS = {
   "Business & Property Services": "#6b6fae",
@@ -129,16 +136,17 @@ function flowWeight(count) {
 }
 
 function aggregateSankey(rows, state) {
+  const filters = getSectorFilters(state);
   const filteredRows = rows.filter((row) => {
-    if (state.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== state.localAuthorityCode) {
+    if (filters.localAuthorityCode !== ALL_SCOTLAND && row.localAuthorityCode !== filters.localAuthorityCode) {
       return false;
     }
 
-    if (state.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== state.coarseCategory) {
+    if (filters.coarseCategory !== ALL_CATEGORIES && row.coarseCategory !== filters.coarseCategory) {
       return false;
     }
 
-    if (state.isicSection !== ALL_ISIC && row.firstIsicSection !== state.isicSection) {
+    if (filters.isicSection !== ALL_ISIC && row.firstIsicSection !== filters.isicSection) {
       return false;
     }
 
@@ -501,11 +509,11 @@ export function initEcosystemServicesSankeyChart() {
   };
 
   const syncFiltersFromState = () => {
-    const state = getState();
+    const filters = getSectorFilters(getState());
 
-    coarseSelect.value = state.coarseCategory;
-    authoritySelect.value = state.localAuthorityCode;
-    isicSelect.value = state.isicSection;
+    coarseSelect.value = filters.coarseCategory;
+    authoritySelect.value = filters.localAuthorityCode;
+    isicSelect.value = filters.isicSection;
 
     queueRender();
   };
@@ -538,26 +546,23 @@ export function initEcosystemServicesSankeyChart() {
   };
 
   coarseSelect.addEventListener("change", (event) => {
-    const nextState = updateState({ coarseCategory: event.target.value || ALL_CATEGORIES });
-    emitGlobalFilterChange(nextState);
+    updateState({ sectorCoarseCategory: event.target.value || ALL_CATEGORIES });
   });
 
   authoritySelect.addEventListener("change", (event) => {
-    const nextState = updateState({ localAuthorityCode: event.target.value || ALL_SCOTLAND });
-    emitGlobalFilterChange(nextState);
+    updateState({ sectorLocalAuthorityCode: event.target.value || ALL_SCOTLAND });
   });
 
   isicSelect.addEventListener("change", (event) => {
-    updateState({ isicSection: event.target.value || ALL_ISIC });
+    updateState({ sectorIsicSection: event.target.value || ALL_ISIC });
   });
 
   resetButton.addEventListener("click", () => {
-    const nextState = updateState({
-      localAuthorityCode: ALL_SCOTLAND,
-      coarseCategory: ALL_CATEGORIES,
-      isicSection: ALL_ISIC,
+    updateState({
+      sectorLocalAuthorityCode: ALL_SCOTLAND,
+      sectorCoarseCategory: ALL_CATEGORIES,
+      sectorIsicSection: ALL_ISIC,
     });
-    emitGlobalFilterChange(nextState);
   });
 
   subscribe(() => {

@@ -47,14 +47,14 @@ function buildNarrative(row) {
 
 function buildDetailRows(row) {
   const details = [
+    ["ISIC Section", formatContributingIndustries(row)],
+    ["Business count", formatBusinessCount(row.businessCount)],
     ["Coarse category", String(row.coarseCategory || "Unclassified")],
     ["Economic Exposure Index", formatOneDecimal(row.economicExposureIndex)],
     ["Annual output", formatOutputBn(row.annualOutputBn)],
-    ["Employment", formatEmployment(row.employmentFte)],
     ["Normalised vulnerability", formatOneDecimal(row.vulnerabilityNormalised)],
-    ["Business count", formatBusinessCount(row.businessCount)],
+    ["Employment", formatEmployment(row.employmentFte)],
     ["Coverage status", String(row.coverageStatus || "unknown")],
-    ["Contributing government industries", formatContributingIndustries(row)],
   ];
 
   return details
@@ -68,21 +68,10 @@ function buildDetailRows(row) {
 }
 
 export function initNatureFinancePriorityPanel() {
-  const emptyState = document.getElementById("nature-finance-selection-empty");
-  const sectorNameEl = document.getElementById("nature-finance-selected-sector-name");
-  const priorityScoreEl = document.getElementById("nature-finance-priority-score");
-  const explainerEl = document.getElementById("nature-finance-priority-explainer");
   const detailsRoot = document.getElementById("nature-finance-drivers-bars");
   const chartRoot = document.getElementById("nature-finance-bubble-chart");
 
-  if (
-    emptyState === null
-    || sectorNameEl === null
-    || priorityScoreEl === null
-    || explainerEl === null
-    || detailsRoot === null
-    || chartRoot === null
-  ) {
+  if (detailsRoot === null || chartRoot === null) {
     return;
   }
 
@@ -99,10 +88,6 @@ export function initNatureFinancePriorityPanel() {
           return;
         }
 
-        emptyState.style.display = "none";
-        sectorNameEl.textContent = String(row.sectorLabel || "");
-        priorityScoreEl.textContent = String(row.coarseCategory || "Unclassified");
-        explainerEl.textContent = buildNarrative(row);
         detailsRoot.classList.add("is-populated");
         detailsRoot.innerHTML = `<div class="nature-finance-priority-details">${buildDetailRows(row)}</div>`;
       };
