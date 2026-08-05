@@ -53,11 +53,21 @@ body {
     gap: 30px;
 }
 
+.header-logos--single {
+  min-width: 280px;
+  justify-content: flex-end;
+}
+
 .header-logo {
     height: 70px;
     width: auto;
     object-fit: contain;
 }
+
+.header-logos--single .header-logo {
+  margin: 20px 0;
+}
+
 .header-logo-large {
     height: 120px;
 }
