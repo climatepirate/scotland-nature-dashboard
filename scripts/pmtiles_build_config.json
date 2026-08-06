@@ -1,6 +1,6 @@
 {
-  "output_dir": "dashboard_app/Data/tiles",
-  "context_output_dir": "dashboard_app/Data/context",
+  "output_dir": "docs/Data/tiles",
+  "context_output_dir": "docs/Data/context",
   "temp_dir": null,
   "context_geojson": [
     {

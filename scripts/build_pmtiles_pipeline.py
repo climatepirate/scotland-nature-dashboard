@@ -91,7 +91,7 @@ def assert_tools_available() -> None:
 def parse_config(path: Path) -> BuildConfig:
     payload = json.loads(path.read_text(encoding="utf-8"))
     output_dir = ROOT / payload["output_dir"]
-    context_output_dir = ROOT / payload.get("context_output_dir", "dashboard_app/Data/context")
+    context_output_dir = ROOT / payload.get("context_output_dir", "docs/Data/context")
 
     temp_dir_value = payload.get("temp_dir")
     temp_dir = (ROOT / temp_dir_value) if temp_dir_value else None

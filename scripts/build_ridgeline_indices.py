@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "Data"
-APP_DATA_DIR = ROOT / "dashboard_app" / "Data"
+APP_DATA_DIR = ROOT / "docs" / "Data"
 
 DASHBOARD_MASTER_CSV = DATA_DIR / "dashboard_master.csv"
 COMPANY_MASTER_CSV = DATA_DIR / "company_master.csv"
