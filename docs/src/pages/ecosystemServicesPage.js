@@ -238,9 +238,18 @@ export function createEcosystemServicesPage() {
   filterGrid.className = "ecosystem-services-filter-grid";
   filterGrid.append(
     createFilterField("Coarse Category", "ecosystem-services-coarse-category", "All Categories"),
-    createFilterField("ISIC Section", "ecosystem-services-isic-section", "All ISIC Sectors"),
     createFilterField("Local Authority", "ecosystem-services-local-authority", "All Scotland"),
   );
+
+  // Hidden ISIC section select kept for chart compatibility (not shown in UI)
+  const hiddenIsicSelect = document.createElement("select");
+  hiddenIsicSelect.id = "ecosystem-services-isic-section";
+  hiddenIsicSelect.style.display = "none";
+  const hiddenIsicOption = document.createElement("option");
+  hiddenIsicOption.value = "All ISIC Sections";
+  hiddenIsicOption.textContent = "All ISIC Sections";
+  hiddenIsicSelect.append(hiddenIsicOption);
+  filterBar.append(hiddenIsicSelect);
 
   const resetWrap = document.createElement("div");
   resetWrap.className = "ecosystem-services-filter-reset";

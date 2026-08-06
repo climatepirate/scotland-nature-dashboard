@@ -1,6 +1,6 @@
 import { createTopNavigation, defaultPageId, isKnownPageId } from "../layout/topNavigation.js";
 import { createHeader } from "../layout/header.js";
-import { createEcosystemServicesPage } from "./ecosystemServicesPage.js";
+import { createEcosystemServicesPage } from "./ecosystemServicesPage.js?v=2";
 import { createBusinessVulnerabilityPage } from "./businessVulnerabilityPage.js";
 import { createNatureFinancePage } from "./natureFinancePage.js";
 import { createGlossaryMethodologyPage } from "./glossaryMethodologyPage.js";

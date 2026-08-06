@@ -1,5 +1,5 @@
 import { renderDashboardShell } from "./pages/dashboardShell.js?v=2";
-import { createDashboardAppShell } from "./pages/dashboardAppShell.js";
+import { createDashboardAppShell } from "./pages/dashboardAppShell.js?v=2";
 import { initOverallBusinessMap } from "./maps/overallBusinessMap.js";
 import { initEcosystemDependencyMap } from "./maps/ecosystemDependencyMap.js";
 import { initEcosystemPressureMap } from "./maps/ecosystemPressureMap.js";
