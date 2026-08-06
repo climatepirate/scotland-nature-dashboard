@@ -7,7 +7,7 @@ import { initDependencyTotalServiceBarChart } from "./charts/dependencyTotalServ
 import { initPressureTotalServiceBarChart } from "./charts/pressureTotalServiceBarChart.js";
 import { initDependencyRidgelineChart } from "./charts/dependencyRidgelineChart.js";
 import { initPressureRidgelineChart } from "./charts/pressureRidgelineChart.js";
-import { initEcosystemServicesSankeyChart } from "./charts/ecosystemServicesSankeyChart.js?v=3";
+import { initEcosystemServicesSankeyChart } from "./charts/ecosystemServicesSankeyChart.js?v=4";
 import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServicesCoarseScatterChart.js?v=3";
 import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js?v=3";
 import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js?v=3";
