@@ -208,9 +208,9 @@ function compareNumbers(a, b, direction) {
   return direction === "asc" ? comparison : -comparison;
 }
 
-function buildRecords(compactRows) {
+function buildRecords(scatterRows, top5Map) {
   const records = [];
-  compactRows.forEach((row) => {
+  scatterRows.forEach((row) => {
     const companyId = normalizeCompanyId(row.company_id);
     const companyName = (row.company_name || row.CompanyName || "").trim();
     const coarseCategory = (row.coarse_category || row["Coarse Category"] || "Unclassified").trim();
@@ -227,6 +227,8 @@ function buildRecords(compactRows) {
       return;
     }
 
+    const top5 = top5Map.get(companyId) || { services: [], pressures: [] };
+
     records.push({
       companyId,
       companyName: companyName || companyId,
@@ -235,8 +237,8 @@ function buildRecords(compactRows) {
       localAuthorityCode,
       totalDependency: dep,
       totalPressure: press,
-      services: splitSummaryList(row.top_5_ecosystem_services),
-      pressures: splitSummaryList(row.top_5_pressures),
+      services: top5.services,
+      pressures: top5.pressures,
     });
   });
 
@@ -868,9 +870,22 @@ export function initEcosystemServicesSummaryRankingTable() {
     queueRender();
   });
 
-  fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact")
-    .then((compactCsv) => {
-      records = buildRecords(parseTable(compactCsv));
+  Promise.all([
+    fetchDashboardDataText("dashboard_scatter_compact.csv", "dashboard scatter compact"),
+    fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact"),
+  ])
+    .then(([scatterCsv, compactCsv]) => {
+      const top5Map = new Map();
+      parseTable(compactCsv).forEach((row) => {
+        const cid = normalizeCompanyId(row.company_id);
+        if (cid) {
+          top5Map.set(cid, {
+            services: splitSummaryList(row.top_5_ecosystem_services),
+            pressures: splitSummaryList(row.top_5_pressures),
+          });
+        }
+      });
+      records = buildRecords(parseTable(scatterCsv), top5Map);
       lastComputedKey = "";
       queueRender();
     })
