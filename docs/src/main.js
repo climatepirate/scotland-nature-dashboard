@@ -11,7 +11,7 @@ import { initEcosystemServicesSankeyChart } from "./charts/ecosystemServicesSank
 import { initEcosystemServicesCoarseScatterChart } from "./charts/ecosystemServicesCoarseScatterChart.js?v=3";
 import { initEcosystemServicesIsicScatterChart } from "./charts/ecosystemServicesIsicScatterChart.js?v=3";
 import { initEcosystemServicesCompanyScatterChart } from "./charts/ecosystemServicesCompanyScatterChart.js?v=3";
-import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js?v=4";
+import { initEcosystemServicesSummaryRankingTable } from "./tables/ecosystemServicesSummaryRankingTable.js?v=5";
 import { initBusinessVulnerabilitySummaryCards } from "./charts/businessVulnerabilitySummaryCards.js?v=4";
 import { initBusinessVulnerabilityMap } from "./maps/businessVulnerabilityMap.js?v=4";
 import { initBusinessVulnerabilityProfileTable } from "./tables/businessVulnerabilityProfileTable.js?v=4";
