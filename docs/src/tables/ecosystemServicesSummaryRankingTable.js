@@ -493,13 +493,17 @@ function buildTableCsv(rows, rowMode) {
   return `${lines.join("\n")}\n`;
 }
 
-function buildHeaderLabel(label, field, sortField, sortDirection) {
-  if (field !== sortField) {
-    return label;
-  }
+const SORTABLE_FIELDS = new Set(["label", "totalDependency", "totalPressure"]);
 
-  const arrow = sortDirection === "asc" ? "▲" : "▼";
-  return `${label} ${arrow}`;
+function buildHeaderLabel(label, field, sortField, sortDirection) {
+  if (field === sortField) {
+    const arrow = sortDirection === "asc" ? " ▲" : " ▼";
+    return `${label}${arrow}`;
+  }
+  if (SORTABLE_FIELDS.has(field)) {
+    return `${label} ↕`;
+  }
+  return label;
 }
 
 function renderTableMarkup(rows, rowMode, sortField, sortDirection) {
