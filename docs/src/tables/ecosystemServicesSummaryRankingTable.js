@@ -618,13 +618,19 @@ export function createEcosystemServicesSummaryRankingTableSection() {
     "Search companies",
   );
 
+  const laSearchControl = createSearchField(
+    "Search local authority",
+    "ecosystem-services-summary-la-search",
+    "Search local authorities",
+  );
+
   const downloadButton = document.createElement("button");
   downloadButton.type = "button";
   downloadButton.id = "ecosystem-services-summary-download";
   downloadButton.className = "ecosystem-services-summary-pagination-button";
   downloadButton.textContent = "Download CSV";
 
-  controls.append(rowsModeControl.field, rankControl.field, searchControl.field, downloadButton);
+  controls.append(rowsModeControl.field, rankControl.field, searchControl.field, laSearchControl.field, downloadButton);
 
   const status = document.createElement("p");
   status.id = "ecosystem-services-summary-status";
@@ -660,6 +666,8 @@ export function initEcosystemServicesSummaryRankingTable() {
   const rankSelect = document.getElementById("ecosystem-services-summary-rank-by");
   const companySearchInput = document.getElementById("ecosystem-services-summary-company-search");
   const companySearchField = companySearchInput?.closest("label");
+  const laSearchInput = document.getElementById("ecosystem-services-summary-la-search");
+  const laSearchField = laSearchInput?.closest("label");
   const downloadButton = document.getElementById("ecosystem-services-summary-download");
 
   if (!tableMount || !statusElement || !paginationElement || !rowModeSelect || !rankSelect) {
@@ -671,6 +679,7 @@ export function initEcosystemServicesSummaryRankingTable() {
   let sortField = RANK_FIELD_BY_OPTION[rankSelect.value] || "combinedScore";
   let sortDirection = getDefaultSortDirection(sortField);
   let companySearchTerm = normalizeSearchTerm(companySearchInput?.value);
+  let laSearchTerm = normalizeSearchTerm(laSearchInput?.value);
   let renderQueued = false;
   let downloadableRows = [];
   let downloadableRowMode = rowModeSelect.value;
@@ -681,10 +690,12 @@ export function initEcosystemServicesSummaryRankingTable() {
   let renderedTotalPages = 1;
 
   const syncCompanySearchVisibility = () => {
-    if (!companySearchField) {
-      return;
+    if (companySearchField) {
+      companySearchField.hidden = rowModeSelect.value !== "company";
     }
-    companySearchField.hidden = rowModeSelect.value !== "company";
+    if (laSearchField) {
+      laSearchField.hidden = rowModeSelect.value !== "local-authority";
+    }
   };
 
   syncCompanySearchVisibility();
@@ -698,10 +709,12 @@ export function initEcosystemServicesSummaryRankingTable() {
     const rowMode = rowModeSelect.value;
     const filterKey = getSectorFilterKey(state);
     const effectiveSearchTerm = rowMode === "company" ? companySearchTerm : "";
+    const effectiveLaSearchTerm = rowMode === "local-authority" ? laSearchTerm : "";
     const computeKey = [
       filterKey,
       rowMode,
       effectiveSearchTerm,
+      effectiveLaSearchTerm,
       sortField,
       sortDirection,
       records.length,
@@ -728,7 +741,9 @@ export function initEcosystemServicesSummaryRankingTable() {
     const indexedRows = prepareSearchIndex(aggregatedRows);
     const rowsToSort = rowMode === "company"
       ? filterCompanyRowsBySearch(indexedRows, companySearchTerm)
-      : indexedRows;
+      : rowMode === "local-authority"
+        ? filterCompanyRowsBySearch(indexedRows, laSearchTerm)
+        : indexedRows;
     const sortedRows = sortRows(rowsToSort, sortField, sortDirection);
 
     downloadableRows = sortedRows;
@@ -794,6 +809,15 @@ export function initEcosystemServicesSummaryRankingTable() {
   if (companySearchInput) {
     companySearchInput.addEventListener("input", (event) => {
       companySearchTerm = normalizeSearchTerm(event.target.value);
+      currentPage = 1;
+      lastComputedKey = "";
+      queueRender();
+    });
+  }
+
+  if (laSearchInput) {
+    laSearchInput.addEventListener("input", (event) => {
+      laSearchTerm = normalizeSearchTerm(event.target.value);
       currentPage = 1;
       lastComputedKey = "";
       queueRender();
