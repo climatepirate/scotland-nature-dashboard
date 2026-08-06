@@ -1,11 +1,31 @@
 import { fetchDashboardDataJson } from "../config/dataAssetLoader.js";
+import { getState, subscribe } from "../state/state.js";
 
 const CHART_CONTAINER_ID = "dependency-total-service-chart";
 const STATUS_ID = "dependency-total-service-status";
 const TOGGLE_ID = "dependency-total-service-toggle";
+const LA_SUBTITLE_ID = "dependency-total-service-la-subtitle";
 const TOP_VISIBLE_COUNT = 5;
 
 let chartInitialized = false;
+
+const LOCAL_AUTHORITY_NAME_BY_CODE = {
+  S12000033: "Aberdeen City", S12000034: "Aberdeenshire", S12000041: "Angus",
+  S12000035: "Argyll and Bute", S12000036: "City of Edinburgh", S12000005: "Clackmannanshire",
+  S12000006: "Dumfries and Galloway", S12000042: "Dundee City", S12000008: "East Ayrshire",
+  S12000045: "East Dunbartonshire", S12000010: "East Lothian", S12000011: "East Renfrewshire",
+  S12000013: "Eilean Siar", S12000014: "Falkirk", S12000047: "Fife", S12000049: "Glasgow City",
+  S12000017: "Highland", S12000018: "Inverclyde", S12000019: "Midlothian", S12000020: "Moray",
+  S12000021: "North Ayrshire", S12000050: "North Lanarkshire", S12000023: "Orkney Islands",
+  S12000048: "Perth and Kinross", S12000038: "Renfrewshire", S12000026: "Scottish Borders",
+  S12000027: "Shetland Islands", S12000028: "South Ayrshire", S12000029: "South Lanarkshire",
+  S12000030: "Stirling", S12000039: "West Dunbartonshire", S12000040: "West Lothian",
+};
+
+function getLaName(code) {
+  if (!code || code === "All Scotland") return "Scotland";
+  return LOCAL_AUTHORITY_NAME_BY_CODE[code] || code;
+}
 
 function formatTotal(value) {
   return Number(value || 0).toLocaleString("en-GB", {
@@ -69,6 +89,7 @@ export async function initDependencyTotalServiceBarChart() {
   const chartContainer = document.getElementById(CHART_CONTAINER_ID);
   const status = document.getElementById(STATUS_ID);
   const toggle = document.getElementById(TOGGLE_ID);
+  const laSubtitle = document.getElementById(LA_SUBTITLE_ID);
   if (!chartContainer || !status || !toggle) {
     return;
   }
@@ -78,43 +99,58 @@ export async function initDependencyTotalServiceBarChart() {
   status.hidden = false;
   status.textContent = "Loading dependency totals…";
 
+  let allData = null;
+  let expanded = false;
+
   try {
-    const payload = await fetchDashboardDataJson(
-      "dependency_total_service_static.json",
-      "dependency total service static",
+    allData = await fetchDashboardDataJson(
+      "dependency_total_by_la.json",
+      "dependency total by local authority",
     );
-    const totals = normalizeRows(payload);
-    if (!totals.length) {
-      status.textContent = "No dependency totals available.";
-      chartContainer.innerHTML = "";
-      toggle.hidden = true;
-      return;
-    }
-
-    let expanded = false;
-
-    const render = () => {
-      renderBars(chartContainer, totals, expanded);
-      if (totals.length <= TOP_VISIBLE_COUNT) {
-        toggle.hidden = true;
-      } else {
-        toggle.hidden = false;
-        toggle.textContent = expanded ? "Show top 5 only" : "Show all ecosystem services";
-        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-      }
-    };
-
-    toggle.addEventListener("click", () => {
-      expanded = !expanded;
-      render();
-    });
-
-    status.hidden = true;
-    render();
   } catch (error) {
     status.hidden = false;
     status.textContent = `Unable to load dependency totals: ${error?.message || error}`;
     chartContainer.innerHTML = "";
     toggle.hidden = true;
+    return;
   }
+
+  const render = () => {
+    const laCode = getState().localAuthorityCode || "All Scotland";
+    const rows = normalizeRows({ rows: allData[laCode] || allData["All Scotland"] || [] });
+    if (laSubtitle) {
+      laSubtitle.textContent = laCode === "All Scotland"
+        ? "Scotland-wide results"
+        : `Filtered to: ${getLaName(laCode)}`;
+    }
+    if (!rows.length) {
+      status.hidden = false;
+      status.textContent = "No dependency totals available for the selected area.";
+      chartContainer.innerHTML = "";
+      toggle.hidden = true;
+      return;
+    }
+    renderBars(chartContainer, rows, expanded);
+    status.hidden = true;
+    if (rows.length <= TOP_VISIBLE_COUNT) {
+      toggle.hidden = true;
+    } else {
+      toggle.hidden = false;
+      toggle.textContent = expanded ? "Show top 5 only" : "Show all ecosystem services";
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+  };
+
+  toggle.addEventListener("click", () => {
+    expanded = !expanded;
+    render();
+  });
+
+  subscribe((nextState, prevState) => {
+    if (nextState.localAuthorityCode !== prevState.localAuthorityCode) {
+      render();
+    }
+  });
+
+  render();
 }

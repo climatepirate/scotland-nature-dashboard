@@ -1,5 +1,6 @@
 import { fetchDashboardDataJson } from "../config/dataAssetLoader.js";
 import { getState, subscribe } from "../state/state.js";
+import { globalFilterData } from "../config/globalFilterData.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
@@ -321,7 +322,10 @@ export function initDependencyRidgelineChart() {
       const selectedServiceSuffix = selectedServiceDisplay === "All ecosystem dependencies"
         ? " - Mean total dependency score per company"
         : "";
-      subtitle.textContent = `Selected ecosystem service: ${selectedServiceDisplay}${selectedServiceSuffix}`;
+      const laDisplay = (state.localAuthorityCode && state.localAuthorityCode !== ALL_SCOTLAND)
+        ? ` | ${globalFilterData.localAuthorities.find((a) => a.code === state.localAuthorityCode)?.name || state.localAuthorityCode}`
+        : " | Scotland";
+      subtitle.textContent = `Selected ecosystem service: ${selectedServiceDisplay}${selectedServiceSuffix}${laDisplay}`;
 
       const localAuthority = state.localAuthorityCode || ALL_SCOTLAND;
       const categories = resolveCategoriesForState(data, state, serviceKey);

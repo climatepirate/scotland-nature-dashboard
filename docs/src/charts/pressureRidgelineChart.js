@@ -1,5 +1,6 @@
 import { fetchDashboardDataJson } from "../config/dataAssetLoader.js";
 import { getState, subscribe } from "../state/state.js";
+import { globalFilterData } from "../config/globalFilterData.js";
 
 const ALL_SCOTLAND = "All Scotland";
 const ALL_CATEGORIES = "All Categories";
@@ -341,7 +342,10 @@ export function initPressureRidgelineChart() {
       const selectedPressureSuffix = selectedPressureDisplay === "All ecosystem pressures"
         ? " - Mean total pressure score per company"
         : "";
-      subtitle.textContent = `Selected ecosystem pressure: ${selectedPressureDisplay}${selectedPressureSuffix}`;
+      const laDisplay = (state.localAuthorityCode && state.localAuthorityCode !== ALL_SCOTLAND)
+        ? ` | ${globalFilterData.localAuthorities.find((a) => a.code === state.localAuthorityCode)?.name || state.localAuthorityCode}`
+        : " | Scotland";
+      subtitle.textContent = `Selected ecosystem pressure: ${selectedPressureDisplay}${selectedPressureSuffix}${laDisplay}`;
 
       const localAuthority = state.localAuthorityCode || ALL_SCOTLAND;
       const categories = resolveCategoriesForState(data, state, pressureKey);
