@@ -4,7 +4,7 @@ export function createPressureTotalServicePanel() {
 
   panel.innerHTML = `
     <div class="panel-head pressure-total-service-head">
-      <h3 class="panel-title pressure-total-service-title">Environmental Pressures by Total Score (All businesses)</h3>
+      <h3 class="panel-title pressure-total-service-title">Environmental Pressures by Total Pressure Score (All businesses)</h3>
       <p class="panel-subtitle pressure-total-service-subtitle">Top 5 pressures shown by default</p>
       <p id="pressure-total-service-la-subtitle" class="panel-subtitle pressure-total-service-la-subtitle">Scotland-wide results</p>
     </div>

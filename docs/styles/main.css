@@ -1178,7 +1178,7 @@ body {
 
 .dependency-total-service-title {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 1.335rem;
   color: #233b38;
 }
 
@@ -1195,8 +1195,39 @@ body {
 }
 
 .dependency-total-service-chart {
+  position: relative;
   display: grid;
   gap: 7px;
+}
+
+.dependency-total-service-custom-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  padding: 6px 10px;
+  border: 1px solid rgba(27, 44, 42, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  color: #1f2b2a;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.dependency-total-service-header {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(0, 2fr);
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.dependency-total-service-col-label {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #1f2b2a;
+  text-align: right;
+  padding-right: 7px;
 }
 
 .dependency-total-service-row {
@@ -1275,7 +1306,7 @@ body {
 
 .pressure-total-service-title {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 1.335rem;
   color: #4a2121;
 }
 
@@ -1292,8 +1323,39 @@ body {
 }
 
 .pressure-total-service-chart {
+  position: relative;
   display: grid;
   gap: 7px;
+}
+
+.pressure-total-service-custom-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  padding: 6px 10px;
+  border: 1px solid rgba(27, 44, 42, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  color: #1f2b2a;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.pressure-total-service-header {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(0, 2fr);
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.pressure-total-service-col-label {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #1f2b2a;
+  text-align: right;
+  padding-right: 7px;
 }
 
 .pressure-total-service-row {
@@ -1363,6 +1425,10 @@ body {
 .dependency-ridgeline-panel {
   display: grid;
   grid-template-rows: auto 1fr;
+}
+
+.dependency-ridgeline-panel .panel-title {
+  font-size: 1.335rem;
 }
 
 .dependency-ridgeline-body {
@@ -2055,6 +2121,10 @@ body {
 .business-vulnerability-filter-bar .global-filter-item {
   display: flex;
   flex-direction: column;
+}
+
+.business-vulnerability-filter-bar .global-filter-item[hidden] {
+  display: none;
 }
 
 .business-vulnerability-filter-bar .global-filter-label {

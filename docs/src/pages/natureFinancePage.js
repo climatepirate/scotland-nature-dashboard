@@ -1,31 +1,31 @@
 import { loadNatureFinanceSharedRows } from "../data/natureFinanceSharedDataset.js?v=3";
 
 const DEFAULT_SECTOR_PALETTE = [
-  "#2f7bbd",
-  "#f05a5a",
-  "#f29e2e",
-  "#2ca58d",
-  "#8e63ce",
-  "#e15f9a",
-  "#4b8b3b",
-  "#d98f2b",
-  "#3f78d4",
-  "#c94f4f",
+  "#5a8fa8",
+  "#b07070",
+  "#c49a55",
+  "#4e9182",
+  "#7d6aaa",
+  "#b06888",
+  "#5a8050",
+  "#a07840",
+  "#5b78b8",
+  "#9e5f5f",
 ];
 
 const PRIMARY_RESOURCE_PALETTE = [
-  "#0f766e",
-  "#d97706",
-  "#0284c7",
-  "#65a30d",
-  "#ef4444",
-  "#7c3aed",
-  "#14b8a6",
-  "#f59e0b",
-  "#dc2626",
-  "#2563eb",
-  "#84cc16",
-  "#f97316",
+  "#4a8a82",
+  "#b88a40",
+  "#4e82a8",
+  "#7a9e48",
+  "#b06060",
+  "#7060aa",
+  "#4ea898",
+  "#c09840",
+  "#a05050",
+  "#5070b0",
+  "#88aa48",
+  "#c07840",
 ];
 
 function shortenSectorLabel(label) {
@@ -197,6 +197,7 @@ function renderResponsiveBarChart(container, rows, options) {
 function renderEconomicOutputBarChart(container, rows) {
   const safeRows = [...rows]
     .filter((row) => Number.isFinite(row?.annualOutputBn) && row.annualOutputBn > 0)
+    .sort((a, b) => b.annualOutputBn - a.annualOutputBn)
     .slice(0, 9);
 
   renderResponsiveBarChart(container, safeRows, {

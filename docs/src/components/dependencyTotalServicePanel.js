@@ -4,7 +4,7 @@ export function createDependencyTotalServicePanel() {
 
   panel.innerHTML = `
     <div class="panel-head dependency-total-service-head">
-      <h3 class="panel-title dependency-total-service-title">Ecosystem Services by Total Score (All businesses)</h3>
+      <h3 class="panel-title dependency-total-service-title">Ecosystem Services by Total Dependency Score (All businesses)</h3>
       <p class="panel-subtitle dependency-total-service-subtitle">Top 5 services shown by default</p>
       <p id="dependency-total-service-la-subtitle" class="panel-subtitle dependency-total-service-la-subtitle">Scotland-wide results</p>
     </div>

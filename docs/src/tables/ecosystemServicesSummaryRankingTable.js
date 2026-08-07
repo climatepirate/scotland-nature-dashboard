@@ -900,11 +900,11 @@ export function initEcosystemServicesSummaryRankingTable() {
 
   Promise.all([
     fetchDashboardDataText("dashboard_scatter_compact.csv", "dashboard scatter compact"),
-    fetchDashboardDataText("dashboard_company_compact.csv", "dashboard company compact"),
+    fetchDashboardDataText("company_top5_full.csv", "company top 5 full lookup"),
   ])
-    .then(([scatterCsv, compactCsv]) => {
+    .then(([scatterCsv, top5Csv]) => {
       const top5Map = new Map();
-      parseTable(compactCsv).forEach((row) => {
+      parseTable(top5Csv).forEach((row) => {
         const cid = normalizeCompanyId(row.company_id);
         if (cid) {
           top5Map.set(cid, {

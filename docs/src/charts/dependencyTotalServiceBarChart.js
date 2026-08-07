@@ -40,10 +40,11 @@ function normalizeRows(payload) {
     .map((row) => {
       const service = String(row?.service || "").trim();
       const total = Number(row?.total);
+      const count = Number(row?.count || 0);
       if (!service || !Number.isFinite(total)) {
         return null;
       }
-      return { service, total };
+      return { service, total, count };
     })
     .filter(Boolean)
     .sort((left, right) => right.total - left.total || left.service.localeCompare(right.service));
@@ -54,6 +55,17 @@ function renderBars(container, rows, expanded) {
   const maxTotal = rows.length ? rows[0].total : 0;
 
   container.innerHTML = "";
+
+  // Styled tooltip element
+  const tooltip = document.createElement("div");
+  tooltip.className = "dependency-total-service-custom-tooltip";
+  tooltip.hidden = true;
+  container.append(tooltip);
+
+  const header = document.createElement("div");
+  header.className = "dependency-total-service-header";
+  header.innerHTML = '<span></span><span class="dependency-total-service-col-label">No. Companies</span>';
+  container.append(header);
 
   visibleRows.forEach((row) => {
     const item = document.createElement("div");
@@ -66,6 +78,19 @@ function renderBars(container, rows, expanded) {
     const barWrap = document.createElement("div");
     barWrap.className = "dependency-total-service-bar-wrap";
 
+    barWrap.addEventListener("mouseenter", (e) => {
+      tooltip.textContent = `Total dependency score: ${formatTotal(row.total)}`;
+      tooltip.hidden = false;
+    });
+    barWrap.addEventListener("mousemove", (e) => {
+      const rect = container.getBoundingClientRect();
+      tooltip.style.left = `${e.clientX - rect.left + 12}px`;
+      tooltip.style.top = `${e.clientY - rect.top - 10}px`;
+    });
+    barWrap.addEventListener("mouseleave", () => {
+      tooltip.hidden = true;
+    });
+
     const bar = document.createElement("div");
     bar.className = "dependency-total-service-bar";
     const widthPct = maxTotal > 0 ? (row.total / maxTotal) * 100 : 0;
@@ -73,7 +98,7 @@ function renderBars(container, rows, expanded) {
 
     const value = document.createElement("span");
     value.className = "dependency-total-service-value";
-    value.textContent = formatTotal(row.total);
+    value.textContent = formatTotal(row.count);
 
     barWrap.append(bar, value);
     item.append(label, barWrap);

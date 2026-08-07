@@ -594,6 +594,7 @@ export function initEcosystemServicesCompanyScatterChart() {
   let rowsByCoarseCategory = new Map();
   let quadrantRowsCache = new Map();
   let lastRenderKey = "";
+  let resizeObserver = null;
 
   const setStatus = (text) => {
     statusElement.textContent = text;
@@ -743,7 +744,13 @@ export function initEcosystemServicesCompanyScatterChart() {
       canvas.style.display = "block";
       renderLegend(quadrantRows);
 
-      const width = Math.max(740, chartRoot.clientWidth || 0);
+      const measuredWidth = chartRoot.clientWidth || 0;
+      if (!measuredWidth) {
+        window.requestAnimationFrame(queueRender);
+        return;
+      }
+
+      const width = Math.max(740, measuredWidth);
       const height = 726;
       const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
       const quadrantXKey = sharedQuadrants ? sharedQuadrants.xMedian : "none";
@@ -778,6 +785,13 @@ export function initEcosystemServicesCompanyScatterChart() {
   window.addEventListener(SHARED_QUADRANT_EVENT, () => {
     queueRender();
   });
+
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(() => {
+      queueRender();
+    });
+    resizeObserver.observe(chartRoot);
+  }
 
   chartRoot.addEventListener("pointermove", (event) => {
     if (!plottedPoints.length || canvas.style.display === "none") {

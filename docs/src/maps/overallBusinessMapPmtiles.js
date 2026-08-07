@@ -283,7 +283,7 @@ function makeLegendCollapsible(legend) {
 const CONTEXT_LAYER_DEFINITIONS = {
   "National Parks": {
     key: "national-parks",
-    dataUrl: new URL("../../Data/context/cairngorms_national_park.geojson", import.meta.url).toString(),
+    dataUrl: new URL("../../Data/context/national_parks.geojson", import.meta.url).toString(),
     fillColor: "#4f8f72",
     lineColor: "#2f6d53",
   },
@@ -457,7 +457,7 @@ function buildColorExpression(stops) {
 
 // PAGE-SPECIFIC: Build opacity expression (hover-based)
 function buildOpacityExpression() {
-  return ["case", ["boolean", ["feature-state", "hover"], false], 0.95, 0.88];
+  return ["case", ["boolean", ["feature-state", "hover"], false], 0.86, 0.72];
 }
 
 export async function initOverallBusinessMapPmtiles() {
